@@ -1,0 +1,112 @@
+cmake_minimum_required(VERSION 3.20)
+project(pathview CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Export compile commands for IDE support
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Find SDL2 via vcpkg
+find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL2_image CONFIG REQUIRED)
+
+# Find OpenSlide using custom module
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+find_package(OpenSlide REQUIRED)
+
+# ImGui sources (compiled directly, not via vcpkg)
+set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/external/imgui)
+
+# Check if ImGui exists
+if(NOT EXISTS "${IMGUI_DIR}/imgui.h")
+    message(FATAL_ERROR
+        "ImGui not found at ${IMGUI_DIR}. "
+        "Please run: mkdir -p external/imgui && cd external/imgui && "
+        "curl -L https://github.com/ocornut/imgui/archive/refs/tags/v1.90.0.tar.gz | tar xz --strip-components=1")
+endif()
+
+# ImGui core and backend files
+set(IMGUI_SOURCES
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer2.cpp
+)
+
+# Application sources
+set(APP_SOURCES
+    src/main.cpp
+    src/Application.cpp
+    src/SlideLoader.cpp
+    src/Viewport.cpp
+    src/TileCache.cpp
+    src/SlideRenderer.cpp
+    src/TextureManager.cpp
+    src/Minimap.cpp
+)
+
+# Create executable
+add_executable(pathview ${APP_SOURCES} ${IMGUI_SOURCES})
+
+# Include directories
+target_include_directories(pathview PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
+    ${OPENSLIDE_INCLUDE_DIRS}
+)
+
+# Link libraries
+target_link_libraries(pathview PRIVATE
+    SDL2::SDL2
+    $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>
+    ${OPENSLIDE_LIBRARIES}
+)
+
+# Platform-specific settings
+if(APPLE)
+    target_link_libraries(pathview PRIVATE
+        "-framework CoreFoundation"
+        "-framework ApplicationServices"
+    )
+
+    # Set RPATH for finding shared libraries
+    set_target_properties(pathview PROPERTIES
+        BUILD_RPATH "@executable_path"
+        INSTALL_RPATH "@executable_path"
+    )
+endif()
+
+if(UNIX AND NOT APPLE)
+    # Linux-specific settings
+    target_link_libraries(pathview PRIVATE pthread dl)
+
+    set_target_properties(pathview PROPERTIES
+        BUILD_RPATH "\$ORIGIN"
+        INSTALL_RPATH "\$ORIGIN"
+    )
+endif()
+
+# Compiler warnings
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(pathview PRIVATE
+        -Wall -Wextra -Wpedantic
+        $<$<CONFIG:Debug>:-g -O0>
+        $<$<CONFIG:Release>:-O3>
+    )
+endif()
+
+# Print configuration summary
+message(STATUS "=== PathView Configuration ===")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "C++ standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "SDL2 found: ${SDL2_FOUND}")
+message(STATUS "OpenSlide found: ${OPENSLIDE_FOUND}")
+message(STATUS "OpenSlide include: ${OPENSLIDE_INCLUDE_DIRS}")
+message(STATUS "OpenSlide library: ${OPENSLIDE_LIBRARIES}")
+message(STATUS "ImGui directory: ${IMGUI_DIR}")
+message(STATUS "==============================")
