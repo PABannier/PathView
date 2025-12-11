@@ -21,6 +21,7 @@ Application::Application()
     , windowWidth_(1280)
     , windowHeight_(720)
     , previewTexture_(nullptr)
+    , sidebarVisible_(true)
 {
 }
 
@@ -104,6 +105,7 @@ void Application::Shutdown() {
     }
 
     // Cleanup components
+    polygonOverlay_.reset();
     minimap_.reset();
     slideRenderer_.reset();
     viewport_.reset();
@@ -237,7 +239,7 @@ void Application::Render() {
 
     // Render minimap overlay
     if (slideLoader_ && viewport_ && minimap_) {
-        minimap_->Render(*viewport_);
+        minimap_->Render(*viewport_, sidebarVisible_, SIDEBAR_WIDTH);
     }
 
     // Render ImGui
@@ -249,123 +251,8 @@ void Application::Render() {
 }
 
 void Application::RenderUI() {
-    // Main menu bar
-    if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Open Slide...", "Ctrl+O")) {
-                OpenFileDialog();
-            }
-            if (ImGui::MenuItem("Load Polygons...", "Ctrl+P")) {
-                OpenPolygonFileDialog();
-            }
-            ImGui::Separator();
-            if (ImGui::MenuItem("Exit", "Ctrl+Q")) {
-                running_ = false;
-            }
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("View")) {
-            if (ImGui::MenuItem("Reset View", "R") && viewport_) {
-                viewport_->ResetView();
-            }
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Help")) {
-            if (ImGui::MenuItem("About")) {
-                // Could add an about dialog
-            }
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMainMenuBar();
-    }
-
-    // Show slide info panel
-    if (slideLoader_ && slideLoader_->IsValid()) {
-        ImGui::Begin("Slide Information");
-        ImGui::Text("Slide: %s", currentSlidePath_.c_str());
-        ImGui::Separator();
-        ImGui::Text("Dimensions: %lld x %lld", slideLoader_->GetWidth(), slideLoader_->GetHeight());
-        ImGui::Text("Levels: %d", slideLoader_->GetLevelCount());
-
-        // Show viewport info if active
-        if (viewport_) {
-            ImGui::Separator();
-            ImGui::Text("Zoom: %.1f%%", viewport_->GetZoom() * 100.0);
-            auto pos = viewport_->GetPosition();
-            ImGui::Text("Position: (%.0f, %.0f)", pos.x, pos.y);
-            auto visible = viewport_->GetVisibleRegion();
-            ImGui::Text("Visible: %.0fx%.0f", visible.width, visible.height);
-        }
-
-        // Show cache statistics if renderer is active
-        if (slideRenderer_) {
-            ImGui::Separator();
-            ImGui::Text("Tile Cache:");
-            ImGui::Text("  Tiles: %zu", slideRenderer_->GetCacheTileCount());
-            ImGui::Text("  Memory: %.1f MB", slideRenderer_->GetCacheMemoryUsage() / (1024.0 * 1024.0));
-            ImGui::Text("  Hit rate: %.1f%%", slideRenderer_->GetCacheHitRate() * 100.0);
-        }
-
-        ImGui::Separator();
-        for (int i = 0; i < slideLoader_->GetLevelCount(); ++i) {
-            auto dims = slideLoader_->GetLevelDimensions(i);
-            double downsample = slideLoader_->GetLevelDownsample(i);
-            ImGui::Text("  Level %d: %lld x %lld (%.1fx)", i, dims.width, dims.height, downsample);
-        }
-        ImGui::End();
-    }
-
-    // Polygon Overlay Control Panel
-    if (polygonOverlay_ && ImGui::Begin("Polygon Overlay", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        // Toggle visibility
-        bool visible = polygonOverlay_->IsVisible();
-        if (ImGui::Checkbox("Show Polygons", &visible)) {
-            polygonOverlay_->SetVisible(visible);
-        }
-
-        // Opacity slider
-        float opacity = polygonOverlay_->GetOpacity();
-        if (ImGui::SliderFloat("Opacity", &opacity, 0.0f, 1.0f, "%.2f")) {
-            polygonOverlay_->SetOpacity(opacity);
-        }
-
-        // Only show color controls if polygons are loaded
-        if (polygonOverlay_->GetPolygonCount() > 0) {
-            ImGui::Separator();
-            ImGui::Text("Class Colors:");
-
-            // Color legend and pickers
-            for (int classId : polygonOverlay_->GetClassIds()) {
-                SDL_Color color = polygonOverlay_->GetClassColor(classId);
-                ImVec4 imColor(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, 1.0f);
-
-                ImGui::PushID(classId);
-                if (ImGui::ColorEdit3(("Class " + std::to_string(classId)).c_str(),
-                                      (float*)&imColor,
-                                      ImGuiColorEditFlags_NoInputs)) {
-                    polygonOverlay_->SetClassColor(classId, {
-                        static_cast<uint8_t>(imColor.x * 255),
-                        static_cast<uint8_t>(imColor.y * 255),
-                        static_cast<uint8_t>(imColor.z * 255),
-                        255
-                    });
-                }
-                ImGui::PopID();
-            }
-
-            ImGui::Separator();
-            ImGui::Text("Polygons: %d", polygonOverlay_->GetPolygonCount());
-        } else {
-            ImGui::Separator();
-            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "No polygons loaded");
-            ImGui::Text("Use File -> Load Polygons... to load");
-        }
-
-        ImGui::End();
-    }
+    RenderMenuBar();
+    RenderSidebar();
 }
 
 void Application::OpenFileDialog() {
@@ -522,4 +409,179 @@ void Application::RenderSlidePreview() {
 
     // Render the texture
     SDL_RenderCopy(renderer_, previewTexture_, nullptr, &dstRect);
+}
+
+void Application::RenderMenuBar() {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Open Slide...", "Ctrl+O")) {
+                OpenFileDialog();
+            }
+            if (ImGui::MenuItem("Load Polygons...", "Ctrl+P")) {
+                OpenPolygonFileDialog();
+            }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Exit", "Ctrl+Q")) {
+                running_ = false;
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("View")) {
+            if (ImGui::MenuItem("Reset View", "R") && viewport_) {
+                viewport_->ResetView();
+            }
+            ImGui::MenuItem("Toggle Sidebar", nullptr, &sidebarVisible_);
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Help")) {
+            if (ImGui::MenuItem("About")) {
+                // Could add an about dialog
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+}
+
+void Application::RenderSidebar() {
+    if (!sidebarVisible_) {
+        return;  // Sidebar is hidden
+    }
+
+    // Calculate sidebar position and size
+    float menuBarHeight = ImGui::GetFrameHeight();
+    ImVec2 sidebarPos(windowWidth_ - SIDEBAR_WIDTH, menuBarHeight);
+    ImVec2 sidebarSize(SIDEBAR_WIDTH, windowHeight_ - menuBarHeight);
+
+    // Position and size the sidebar
+    ImGui::SetNextWindowPos(sidebarPos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(sidebarSize, ImGuiCond_Always);
+
+    // Create fixed sidebar window without title bar
+    ImGuiWindowFlags windowFlags =
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoTitleBar;
+
+    if (ImGui::Begin("##Sidebar", nullptr, windowFlags)) {
+        // Create tab bar
+        if (ImGui::BeginTabBar("SidebarTabs", ImGuiTabBarFlags_None)) {
+
+            // Tab 1: Slide Information
+            if (ImGui::BeginTabItem("Slide Information")) {
+                RenderSlideInfoTab();
+                ImGui::EndTabItem();
+            }
+
+            // Tab 2: Cell Polygons
+            if (ImGui::BeginTabItem("Cell Polygons")) {
+                RenderPolygonTab();
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
+        }
+    }
+    ImGui::End();
+}
+
+void Application::RenderSlideInfoTab() {
+    if (!slideLoader_ || !slideLoader_->IsValid()) {
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "No slide loaded");
+        ImGui::Text("Use File -> Open Slide...");
+        return;
+    }
+
+    ImGui::Text("Slide: %s", currentSlidePath_.c_str());
+    ImGui::Separator();
+    ImGui::Text("Dimensions: %lld x %lld",
+                slideLoader_->GetWidth(),
+                slideLoader_->GetHeight());
+    ImGui::Text("Levels: %d", slideLoader_->GetLevelCount());
+
+    if (viewport_) {
+        ImGui::Separator();
+        ImGui::Text("Zoom: %.1f%%", viewport_->GetZoom() * 100.0);
+        auto pos = viewport_->GetPosition();
+        ImGui::Text("Position: (%.0f, %.0f)", pos.x, pos.y);
+        auto visible = viewport_->GetVisibleRegion();
+        ImGui::Text("Visible: %.0fx%.0f", visible.width, visible.height);
+    }
+
+    if (slideRenderer_) {
+        ImGui::Separator();
+        ImGui::Text("Tile Cache:");
+        ImGui::Text("  Tiles: %zu", slideRenderer_->GetCacheTileCount());
+        ImGui::Text("  Memory: %.1f MB",
+                    slideRenderer_->GetCacheMemoryUsage() / (1024.0 * 1024.0));
+        ImGui::Text("  Hit rate: %.1f%%",
+                    slideRenderer_->GetCacheHitRate() * 100.0);
+    }
+
+    ImGui::Separator();
+    for (int i = 0; i < slideLoader_->GetLevelCount(); ++i) {
+        auto dims = slideLoader_->GetLevelDimensions(i);
+        double downsample = slideLoader_->GetLevelDownsample(i);
+        ImGui::Text("  Level %d: %lld x %lld (%.1fx)",
+                    i, dims.width, dims.height, downsample);
+    }
+}
+
+void Application::RenderPolygonTab() {
+    if (!polygonOverlay_) {
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+                          "Overlay not initialized");
+        return;
+    }
+
+    // Visibility checkbox
+    bool visible = polygonOverlay_->IsVisible();
+    if (ImGui::Checkbox("Show Polygons", &visible)) {
+        polygonOverlay_->SetVisible(visible);
+    }
+
+    // Opacity slider
+    float opacity = polygonOverlay_->GetOpacity();
+    if (ImGui::SliderFloat("Opacity", &opacity, 0.0f, 1.0f, "%.2f")) {
+        polygonOverlay_->SetOpacity(opacity);
+    }
+
+    // Color controls (only when polygons loaded)
+    if (polygonOverlay_->GetPolygonCount() > 0) {
+        ImGui::Separator();
+        ImGui::Text("Class Colors:");
+
+        for (int classId : polygonOverlay_->GetClassIds()) {
+            SDL_Color color = polygonOverlay_->GetClassColor(classId);
+            ImVec4 imColor(color.r / 255.0f,
+                          color.g / 255.0f,
+                          color.b / 255.0f,
+                          1.0f);
+
+            ImGui::PushID(classId);
+            if (ImGui::ColorEdit3(("Class " + std::to_string(classId)).c_str(),
+                                  (float*)&imColor,
+                                  ImGuiColorEditFlags_NoInputs)) {
+                polygonOverlay_->SetClassColor(classId, {
+                    static_cast<uint8_t>(imColor.x * 255),
+                    static_cast<uint8_t>(imColor.y * 255),
+                    static_cast<uint8_t>(imColor.z * 255),
+                    255
+                });
+            }
+            ImGui::PopID();
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Polygons: %d", polygonOverlay_->GetPolygonCount());
+    } else {
+        ImGui::Separator();
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+                          "No polygons loaded");
+        ImGui::Text("Use File -> Load Polygons...");
+    }
 }

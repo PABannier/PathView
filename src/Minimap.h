@@ -12,7 +12,7 @@ public:
     Minimap(SlideLoader* loader, SDL_Renderer* renderer, int windowWidth, int windowHeight);
     ~Minimap();
 
-    void Render(const Viewport& viewport);
+    void Render(const Viewport& viewport, bool sidebarVisible = false, float sidebarWidth = 0.0f);
     bool Contains(int x, int y) const;
     void HandleClick(int x, int y, Viewport& viewport);
     void SetWindowSize(int width, int height);

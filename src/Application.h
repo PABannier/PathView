@@ -36,6 +36,12 @@ private:
     void OpenPolygonFileDialog();
     void LoadPolygons(const std::string& path);
 
+    // UI rendering methods
+    void RenderMenuBar();
+    void RenderSidebar();
+    void RenderSlideInfoTab();
+    void RenderPolygonTab();
+
     // SDL objects
     SDL_Window* window_;
     SDL_Renderer* renderer_;
@@ -61,4 +67,8 @@ private:
 
     // Current slide path
     std::string currentSlidePath_;
+
+    // Sidebar configuration
+    static constexpr float SIDEBAR_WIDTH = 350.0f;
+    bool sidebarVisible_;
 };

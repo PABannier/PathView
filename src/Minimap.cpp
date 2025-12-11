@@ -113,9 +113,39 @@ void Minimap::SetWindowSize(int width, int height) {
     CalculateMinimapRect();
 }
 
-void Minimap::Render(const Viewport& viewport) {
+void Minimap::Render(const Viewport& viewport, bool sidebarVisible, float sidebarWidth) {
     if (!overviewTexture_) {
         return;
+    }
+
+    // Calculate available width accounting for sidebar
+    int availableWidth = windowWidth_;
+    if (sidebarVisible) {
+        availableWidth -= static_cast<int>(sidebarWidth);
+    }
+
+    // Recalculate minimap position based on available width
+    if (overviewWidth_ > 0 && overviewHeight_ > 0) {
+        // Calculate aspect ratio
+        float aspectRatio = static_cast<float>(overviewWidth_) / overviewHeight_;
+
+        // Calculate minimap size while maintaining aspect ratio
+        int width, height;
+        if (aspectRatio >= 1.0f) {
+            // Landscape: width is limiting
+            width = std::min(MINIMAP_MAX_SIZE, overviewWidth_);
+            height = static_cast<int>(width / aspectRatio);
+        } else {
+            // Portrait: height is limiting
+            height = std::min(MINIMAP_MAX_SIZE, overviewHeight_);
+            width = static_cast<int>(height * aspectRatio);
+        }
+
+        // Position in bottom-right corner with margin, accounting for sidebar
+        int x = availableWidth - width - MINIMAP_MARGIN;
+        int y = windowHeight_ - height - MINIMAP_MARGIN;
+
+        minimapRect_ = {x, y, width, height};
     }
 
     // Draw semi-transparent background
