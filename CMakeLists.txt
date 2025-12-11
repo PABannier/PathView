@@ -59,6 +59,7 @@ set(APP_SOURCES
     src/PolygonLoader.cpp
     src/PolygonIndex.cpp
     src/PolygonTriangulator.cpp
+    src/AnnotationManager.cpp
     protobuf/cell_polygons.pb.cc
 )
 
