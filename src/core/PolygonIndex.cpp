@@ -6,9 +6,7 @@
 PolygonIndex::PolygonIndex(int gridWidth, int gridHeight,
                            double slideWidth, double slideHeight)
     : gridWidth_(gridWidth)
-    , gridHeight_(gridHeight)
-    , slideWidth_(slideWidth)
-    , slideHeight_(slideHeight) {
+    , gridHeight_(gridHeight) {
 
     // Calculate cell dimensions
     cellWidth_ = slideWidth / gridWidth;

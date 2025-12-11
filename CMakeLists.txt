@@ -50,19 +50,19 @@ set(IMGUI_SOURCES
 
 # Application sources
 set(APP_SOURCES
-    src/main.cpp
-    src/Application.cpp
-    src/SlideLoader.cpp
-    src/Viewport.cpp
-    src/TileCache.cpp
-    src/SlideRenderer.cpp
-    src/TextureManager.cpp
-    src/Minimap.cpp
-    src/PolygonOverlay.cpp
-    src/PolygonLoader.cpp
-    src/PolygonIndex.cpp
-    src/PolygonTriangulator.cpp
-    src/AnnotationManager.cpp
+    src/core/main.cpp
+    src/core/Application.cpp
+    src/core/SlideLoader.cpp
+    src/core/Viewport.cpp
+    src/core/TileCache.cpp
+    src/core/SlideRenderer.cpp
+    src/core/TextureManager.cpp
+    src/core/Minimap.cpp
+    src/core/PolygonOverlay.cpp
+    src/core/PolygonLoader.cpp
+    src/core/PolygonIndex.cpp
+    src/core/PolygonTriangulator.cpp
+    src/core/AnnotationManager.cpp
     protobuf/cell_polygons.pb.cc
 )
 
@@ -71,7 +71,7 @@ add_executable(pathview ${APP_SOURCES} ${IMGUI_SOURCES})
 
 # Include directories
 target_include_directories(pathview PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/core
     ${CMAKE_SOURCE_DIR}/protobuf
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends

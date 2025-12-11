@@ -47,8 +47,6 @@ private:
     int gridHeight_;
     double cellWidth_;
     double cellHeight_;
-    double slideWidth_;
-    double slideHeight_;
 
     /**
      * Convert slide coordinates to grid cell indices
