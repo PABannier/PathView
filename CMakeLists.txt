@@ -13,6 +13,9 @@ find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
 find_package(nfd CONFIG REQUIRED)
 
+# Find Protobuf (use system/Homebrew version to match generated files)
+find_package(Protobuf REQUIRED)
+
 # Find OpenSlide using custom module
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 find_package(OpenSlide REQUIRED)
@@ -48,6 +51,11 @@ set(APP_SOURCES
     src/SlideRenderer.cpp
     src/TextureManager.cpp
     src/Minimap.cpp
+    src/PolygonOverlay.cpp
+    src/PolygonLoader.cpp
+    src/PolygonIndex.cpp
+    src/PolygonTriangulator.cpp
+    protobuf/cell_polygons.pb.cc
 )
 
 # Create executable
@@ -56,9 +64,11 @@ add_executable(pathview ${APP_SOURCES} ${IMGUI_SOURCES})
 # Include directories
 target_include_directories(pathview PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/protobuf
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
     ${OPENSLIDE_INCLUDE_DIRS}
+    ${Protobuf_INCLUDE_DIRS}
 )
 
 # Link libraries
@@ -67,6 +77,7 @@ target_link_libraries(pathview PRIVATE
     $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>
     ${OPENSLIDE_LIBRARIES}
     nfd::nfd
+    ${Protobuf_LIBRARIES}
 )
 
 # Platform-specific settings

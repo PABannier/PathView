@@ -7,7 +7,12 @@
       "Bash(wc:*)",
       "WebSearch",
       "Bash(cmake:*)",
-      "Bash(./build/pathview)"
+      "Bash(./build/pathview)",
+      "Bash(grep:*)",
+      "Bash(sdl2-config:*)",
+      "Bash(vcpkg install:*)",
+      "Bash(make:*)",
+      "Bash(protoc:*)"
     ],
     "deny": [],
     "ask": []
