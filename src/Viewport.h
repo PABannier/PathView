@@ -30,6 +30,11 @@ struct Rect {
     bool Contains(double px, double py) const {
         return px >= x && px < x + width && py >= y && py < y + height;
     }
+
+    bool Intersects(const Rect& other) const {
+        return !(x + width < other.x || other.x + other.width < x ||
+                 y + height < other.y || other.y + other.height < y);
+    }
 };
 
 class Viewport {

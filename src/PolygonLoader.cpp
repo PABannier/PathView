@@ -82,8 +82,8 @@ bool PolygonLoader::Load(const std::string& filepath,
             for (int k = 0; k < mask.coordinates_size(); ++k) {
                 const auto& point = mask.coordinates(k);
                 polygon.vertices.emplace_back(
-                    static_cast<double>(point.x()),
-                    static_cast<double>(point.y())
+                    static_cast<double>((point.x() + tile.x() * tile.width()) * 2),
+                    static_cast<double>((point.y() + tile.y() * tile.height()) * 2)
                 );
             }
 

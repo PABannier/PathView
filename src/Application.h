@@ -9,6 +9,7 @@ class SlideRenderer;
 class Minimap;
 class Viewport;
 class TextureManager;
+class PolygonOverlay;
 
 class Application {
 public:
@@ -32,6 +33,8 @@ private:
 
     void OpenFileDialog();
     void LoadSlide(const std::string& path);
+    void OpenPolygonFileDialog();
+    void LoadPolygons(const std::string& path);
 
     // SDL objects
     SDL_Window* window_;
@@ -51,6 +54,7 @@ private:
     std::unique_ptr<Viewport> viewport_;
     std::unique_ptr<SlideRenderer> slideRenderer_;
     std::unique_ptr<Minimap> minimap_;
+    std::unique_ptr<PolygonOverlay> polygonOverlay_;
 
     // Preview texture (Phase 2 simple display)
     SDL_Texture* previewTexture_;

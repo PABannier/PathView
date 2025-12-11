@@ -4,6 +4,7 @@
 #include "Viewport.h"
 #include "SlideRenderer.h"
 #include "Minimap.h"
+#include "PolygonOverlay.h"
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
@@ -78,6 +79,9 @@ bool Application::Initialize() {
 
     // Create texture manager
     textureManager_ = std::make_unique<TextureManager>(renderer_);
+
+    // Create polygon overlay
+    polygonOverlay_ = std::make_unique<PolygonOverlay>(renderer_);
 
     std::cout << "PathView initialized successfully" << std::endl;
     running_ = true;
@@ -226,6 +230,11 @@ void Application::Render() {
         RenderSlidePreview();
     }
 
+    // Render polygon overlays
+    if (polygonOverlay_ && viewport_ && polygonOverlay_->IsVisible()) {
+        polygonOverlay_->Render(*viewport_);
+    }
+
     // Render minimap overlay
     if (slideLoader_ && viewport_ && minimap_) {
         minimap_->Render(*viewport_);
@@ -245,6 +254,9 @@ void Application::RenderUI() {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Open Slide...", "Ctrl+O")) {
                 OpenFileDialog();
+            }
+            if (ImGui::MenuItem("Load Polygons...", "Ctrl+P")) {
+                OpenPolygonFileDialog();
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Ctrl+Q")) {
@@ -303,6 +315,55 @@ void Application::RenderUI() {
             double downsample = slideLoader_->GetLevelDownsample(i);
             ImGui::Text("  Level %d: %lld x %lld (%.1fx)", i, dims.width, dims.height, downsample);
         }
+        ImGui::End();
+    }
+
+    // Polygon Overlay Control Panel
+    if (polygonOverlay_ && ImGui::Begin("Polygon Overlay", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        // Toggle visibility
+        bool visible = polygonOverlay_->IsVisible();
+        if (ImGui::Checkbox("Show Polygons", &visible)) {
+            polygonOverlay_->SetVisible(visible);
+        }
+
+        // Opacity slider
+        float opacity = polygonOverlay_->GetOpacity();
+        if (ImGui::SliderFloat("Opacity", &opacity, 0.0f, 1.0f, "%.2f")) {
+            polygonOverlay_->SetOpacity(opacity);
+        }
+
+        // Only show color controls if polygons are loaded
+        if (polygonOverlay_->GetPolygonCount() > 0) {
+            ImGui::Separator();
+            ImGui::Text("Class Colors:");
+
+            // Color legend and pickers
+            for (int classId : polygonOverlay_->GetClassIds()) {
+                SDL_Color color = polygonOverlay_->GetClassColor(classId);
+                ImVec4 imColor(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, 1.0f);
+
+                ImGui::PushID(classId);
+                if (ImGui::ColorEdit3(("Class " + std::to_string(classId)).c_str(),
+                                      (float*)&imColor,
+                                      ImGuiColorEditFlags_NoInputs)) {
+                    polygonOverlay_->SetClassColor(classId, {
+                        static_cast<uint8_t>(imColor.x * 255),
+                        static_cast<uint8_t>(imColor.y * 255),
+                        static_cast<uint8_t>(imColor.z * 255),
+                        255
+                    });
+                }
+                ImGui::PopID();
+            }
+
+            ImGui::Separator();
+            ImGui::Text("Polygons: %d", polygonOverlay_->GetPolygonCount());
+        } else {
+            ImGui::Separator();
+            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "No polygons loaded");
+            ImGui::Text("Use File -> Load Polygons... to load");
+        }
+
         ImGui::End();
     }
 }
@@ -378,6 +439,14 @@ void Application::LoadSlide(const std::string& path) {
         windowHeight_
     );
 
+    // Set slide dimensions in polygon overlay for spatial indexing
+    if (polygonOverlay_) {
+        polygonOverlay_->SetSlideDimensions(
+            static_cast<double>(slideLoader_->GetWidth()),
+            static_cast<double>(slideLoader_->GetHeight())
+        );
+    }
+
     std::cout << "Viewport, renderer, and minimap created" << std::endl;
     std::cout << "===================\n" << std::endl;
     std::cout << "Controls:" << std::endl;
@@ -386,6 +455,47 @@ void Application::LoadSlide(const std::string& path) {
     std::cout << "  - Click on minimap: Jump to location" << std::endl;
     std::cout << "  - 'R' or View -> Reset View: Reset to fit" << std::endl;
     std::cout << "===================\n" << std::endl;
+}
+
+void Application::OpenPolygonFileDialog() {
+    // Initialize NFD
+    NFD::Guard nfdGuard;
+
+    // Configure file filters for polygon data files
+    nfdfilteritem_t filters[] = {
+        { "Polygon Data", "pb,protobuf,bin" },
+        { "All Files", "*" }
+    };
+
+    // Open file dialog
+    NFD::UniquePath outPath;
+    nfdresult_t result = NFD::OpenDialog(outPath, filters, 2);
+
+    if (result == NFD_OKAY) {
+        std::cout << "Selected polygon file: " << outPath.get() << std::endl;
+        LoadPolygons(outPath.get());
+    }
+    else if (result == NFD_CANCEL) {
+        std::cout << "Polygon file dialog cancelled" << std::endl;
+    }
+    else {
+        std::cerr << "Polygon file dialog error: " << NFD::GetError() << std::endl;
+    }
+}
+
+void Application::LoadPolygons(const std::string& path) {
+    if (!polygonOverlay_) {
+        std::cerr << "Polygon overlay not initialized" << std::endl;
+        return;
+    }
+
+    if (polygonOverlay_->LoadPolygons(path)) {
+        std::cout << "Polygons loaded successfully from: " << path << std::endl;
+        // Automatically enable visibility after loading
+        polygonOverlay_->SetVisible(true);
+    } else {
+        std::cerr << "Failed to load polygons from: " << path << std::endl;
+    }
 }
 
 void Application::RenderSlidePreview() {
