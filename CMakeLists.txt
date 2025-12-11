@@ -24,6 +24,9 @@ find_package(NFD REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(OpenSlide REQUIRED)
 
+# Find Abseil (required by modern protobuf for logging)
+find_package(absl CONFIG REQUIRED)
+
 # ImGui sources (compiled directly, not via vcpkg)
 set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/external/imgui)
 
@@ -83,6 +86,10 @@ target_link_libraries(pathview PRIVATE
     ${OPENSLIDE_LIBRARIES}
     nfd::nfd
     ${Protobuf_LIBRARIES}
+    absl::log
+    absl::log_internal_check_op
+    absl::log_internal_message
+    absl::hash
 )
 
 # Platform-specific settings

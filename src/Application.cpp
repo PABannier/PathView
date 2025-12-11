@@ -102,26 +102,31 @@ void Application::Run() {
 }
 
 void Application::Shutdown() {
-    // Cleanup preview texture
+    if (!window_ && !renderer_) {
+        return;
+    }
+
+    annotationManager_.reset();
+    polygonOverlay_.reset();
+    minimap_.reset();
+    slideRenderer_.reset();
+    textureManager_.reset();
+    viewport_.reset();
+    slideLoader_.reset();
+
     if (previewTexture_) {
         SDL_DestroyTexture(previewTexture_);
         previewTexture_ = nullptr;
     }
 
-    // Cleanup components
-    polygonOverlay_.reset();
-    minimap_.reset();
-    slideRenderer_.reset();
-    viewport_.reset();
-    slideLoader_.reset();
-    textureManager_.reset();
+    // Cleanup ImGui (must happen while renderer is still valid)
+    if (ImGui::GetCurrentContext()) {
+        ImGui_ImplSDLRenderer2_Shutdown();
+        ImGui_ImplSDL2_Shutdown();
+        ImGui::DestroyContext();
+    }
 
-    // Cleanup ImGui
-    ImGui_ImplSDLRenderer2_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-
-    // Cleanup SDL
+    // Cleanup SDL last
     if (renderer_) {
         SDL_DestroyRenderer(renderer_);
         renderer_ = nullptr;
