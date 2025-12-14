@@ -57,6 +57,11 @@ target_link_libraries(pathview-mcp PRIVATE
     pthread
 )
 
+# Place pathview-mcp at the root of the build folder (same level as pathview)
+set_target_properties(pathview-mcp PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
 # Platform-specific settings
 if(APPLE)
     target_link_libraries(pathview-mcp PRIVATE

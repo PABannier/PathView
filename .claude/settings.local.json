@@ -20,7 +20,10 @@
       "Bash(git submodule:*)",
       "Bash(git checkout:*)",
       "Bash(file:*)",
-      "Bash(unzip:*)"
+      "Bash(unzip:*)",
+      "Bash(curl:*)",
+      "Bash(chmod:*)",
+      "Bash(./run_mcp_tests.sh:*)"
     ],
     "deny": [],
     "ask": []
