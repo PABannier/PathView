@@ -20,11 +20,16 @@
 
 // Global flag for graceful shutdown
 std::atomic<bool> g_running(true);
+pathview::mcp::MCPServer* g_mcpServer = nullptr;
 
 void signal_handler(int signal) {
     if (signal == SIGINT || signal == SIGTERM) {
         std::cout << "\nReceived shutdown signal, stopping..." << std::endl;
         g_running = false;
+        // Actually stop the blocking MCP server
+        if (g_mcpServer) {
+            g_mcpServer->Stop();
+        }
     }
 }
 
@@ -109,6 +114,7 @@ int main(int argc, char** argv) {
     // 5. Create and configure MCP server
     std::cout << "Initializing MCP server..." << std::endl;
     pathview::mcp::MCPServer mcpServer(&ipcClient, &snapshotManager, &httpServer);
+    g_mcpServer = &mcpServer;
     mcpServer.RegisterTools();
 
     std::cout << "✓ MCP server initialized\n" << std::endl;
@@ -143,6 +149,7 @@ int main(int argc, char** argv) {
     // 8. Cleanup
     std::cout << "\nShutting down..." << std::endl;
 
+    g_mcpServer = nullptr;  // Clear before stopping to avoid double-stop
     mcpServer.Stop();
     httpServer.Stop();
 
