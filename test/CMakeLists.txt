@@ -34,12 +34,14 @@ add_executable(unit_tests
     unit/polygon_index_test.cpp
     unit/polygon_triangulator_test.cpp
     unit/slide_renderer_test.cpp
+    unit/navigation_lock_test.cpp
 )
 
 target_include_directories(unit_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/core
     ${CMAKE_SOURCE_DIR}/protobuf
     ${CMAKE_SOURCE_DIR}/test/mocks
+    ${CMAKE_SOURCE_DIR}/external/cpp-mcp/common  # For json.hpp
     ${OPENSLIDE_INCLUDE_DIRS}
     ${Protobuf_INCLUDE_DIRS}
 )
