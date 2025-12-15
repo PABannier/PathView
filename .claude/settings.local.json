@@ -32,7 +32,9 @@
       "Bash(python3:*)",
       "Bash(bd ready:*)",
       "Bash(pip install:*)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Bash(./pathview-mcp:*)",
+      "Bash(./pathview:*)"
     ],
     "deny": [],
     "ask": []

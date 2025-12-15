@@ -78,6 +78,7 @@ set(APP_SOURCES
     src/core/PolygonIndex.cpp
     src/core/PolygonTriangulator.cpp
     src/core/AnnotationManager.cpp
+    src/core/NavigationLock.cpp
     protobuf/cell_polygons.pb.cc
 )
 

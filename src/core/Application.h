@@ -13,6 +13,7 @@ class Viewport;
 class TextureManager;
 class PolygonOverlay;
 class AnnotationManager;
+class NavigationLock;
 struct ImFont;
 
 // Forward declare IPC types
@@ -28,36 +29,6 @@ namespace ipc {
     using json = nlohmann::json;
 }
 }
-
-/**
- * Navigation lock state
- * Prevents user input (keyboard + mouse) when locked
- */
-struct NavigationLock {
-    bool isLocked;
-    std::string ownerUUID;  // UUID as string (36 chars)
-    std::chrono::steady_clock::time_point grantedTime;
-    std::chrono::milliseconds ttlMs;
-    int clientFd;  // IPC client file descriptor (-1 if none)
-
-    NavigationLock()
-        : isLocked(false)
-        , ownerUUID("")
-        , grantedTime()
-        , ttlMs(0)
-        , clientFd(-1)
-    {}
-
-    bool IsExpired() const {
-        if (!isLocked) return false;
-        auto now = std::chrono::steady_clock::now();
-        return (now - grantedTime) >= ttlMs;
-    }
-
-    bool IsOwnedBy(const std::string& uuid) const {
-        return isLocked && ownerUUID == uuid;
-    }
-};
 
 class Application {
 public:
@@ -145,7 +116,7 @@ private:
     bool sidebarVisible_;
 
     // Navigation lock state
-    NavigationLock navLock_;
+    std::unique_ptr<NavigationLock> navLock_;
 
     // Toolbar configuration
     static constexpr float TOOLBAR_HEIGHT = 40.0f;

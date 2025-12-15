@@ -6,6 +6,7 @@
 #include "Minimap.h"
 #include "PolygonOverlay.h"
 #include "AnnotationManager.h"
+#include "NavigationLock.h"
 #include "UIStyle.h"
 #include "../api/ipc/IPCServer.h"
 #include "../api/ipc/IPCMessage.h"
@@ -34,6 +35,7 @@ Application::Application()
     , dpiScale_(1.0f)
     , previewTexture_(nullptr)
     , sidebarVisible_(true)
+    , navLock_(std::make_unique<NavigationLock>())
 {
 }
 
@@ -42,14 +44,14 @@ Application::~Application() {
 }
 
 bool Application::IsNavigationLocked() const {
-    return navLock_.isLocked && !navLock_.IsExpired();
+    return navLock_->IsLocked() && !navLock_->IsExpired();
 }
 
 void Application::CheckLockExpiry() {
-    if (navLock_.isLocked && navLock_.IsExpired()) {
+    if (navLock_->IsLocked() && navLock_->IsExpired()) {
         std::cout << "Navigation lock expired for owner: "
-                  << navLock_.ownerUUID << std::endl;
-        navLock_ = NavigationLock();  // Reset to unlocked
+                  << navLock_->GetOwnerUUID() << std::endl;
+        navLock_->Reset();
     }
 }
 
@@ -176,10 +178,10 @@ bool Application::Initialize() {
     } else {
         // Set disconnect callback for lock auto-release
         ipcServer_->SetDisconnectCallback([this](int clientFd) {
-            if (navLock_.isLocked && navLock_.clientFd == clientFd) {
+            if (navLock_->IsLocked() && navLock_->GetClientFd() == clientFd) {
                 std::cout << "IPC client disconnected, releasing navigation lock for owner: "
-                          << navLock_.ownerUUID << std::endl;
-                navLock_ = NavigationLock();
+                          << navLock_->GetOwnerUUID() << std::endl;
+                navLock_->Reset();
             }
         });
     }
@@ -644,13 +646,13 @@ void Application::RenderNavigationLockIndicator() {
 
         ImGui::Spacing();
 
-        auto timeRemaining = navLock_.ttlMs -
+        auto timeRemaining = navLock_->GetTTL() -
             std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now() - navLock_.grantedTime
+                std::chrono::steady_clock::now() - navLock_->GetGrantedTime()
             );
 
         int remainingSeconds = timeRemaining.count() / 1000;
-        ImGui::Text("Owner: %.8s...", navLock_.ownerUUID.c_str());
+        ImGui::Text("Owner: %.8s...", navLock_->GetOwnerUUID().c_str());
         ImGui::Text("Time: %d:%02d", remainingSeconds / 60, remainingSeconds % 60);
 
         // TODO: Force release button (deferred to later step)
@@ -1136,7 +1138,7 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
                 {"http_server_url", "http://127.0.0.1:8080"},
                 {"ipc_socket", ipcServer_ ? ipcServer_->GetSocketPath() : ""},
                 {"navigation_locked", IsNavigationLocked()},
-                {"lock_owner", navLock_.isLocked ? navLock_.ownerUUID : ""}
+                {"lock_owner", navLock_->IsLocked() ? navLock_->GetOwnerUUID() : ""}
             };
 
             if (viewport_) {
@@ -1179,37 +1181,37 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             }
 
             // Check if already locked by another owner
-            if (navLock_.isLocked && navLock_.ownerUUID != ownerUUID && !navLock_.IsExpired()) {
-                auto timeRemaining = navLock_.ttlMs -
+            if (navLock_->IsLocked() && navLock_->GetOwnerUUID() != ownerUUID && !navLock_->IsExpired()) {
+                auto timeRemaining = navLock_->GetTTL() -
                     std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::steady_clock::now() - navLock_.grantedTime
+                        std::chrono::steady_clock::now() - navLock_->GetGrantedTime()
                     );
 
                 return json{
                     {"success", false},
                     {"error", "Navigation already locked by another agent"},
-                    {"lock_owner", navLock_.ownerUUID},
+                    {"lock_owner", navLock_->GetOwnerUUID()},
                     {"time_remaining_ms", timeRemaining.count()}
                 };
             }
 
             // Grant or renew lock
-            navLock_.isLocked = true;
-            navLock_.ownerUUID = ownerUUID;
-            navLock_.grantedTime = std::chrono::steady_clock::now();
-            navLock_.ttlMs = std::chrono::milliseconds(ttlSeconds * 1000);
-            navLock_.clientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : -1;
+            navLock_->SetLocked(true);
+            navLock_->SetOwnerUUID(ownerUUID);
+            navLock_->SetGrantedTime(std::chrono::steady_clock::now());
+            navLock_->SetTTL(std::chrono::milliseconds(ttlSeconds * 1000));
+            navLock_->SetClientFd(ipcServer_ ? ipcServer_->GetCurrentClientFd() : -1);
 
             std::cout << "Navigation lock granted to " << ownerUUID
                       << " for " << ttlSeconds << "s" << std::endl;
 
             return json{
                 {"success", true},
-                {"lock_owner", navLock_.ownerUUID},
+                {"lock_owner", navLock_->GetOwnerUUID()},
                 {"granted_at", std::chrono::duration_cast<std::chrono::milliseconds>(
-                    navLock_.grantedTime.time_since_epoch()
+                    navLock_->GetGrantedTime().time_since_epoch()
                 ).count()},
-                {"ttl_ms", navLock_.ttlMs.count()}
+                {"ttl_ms", navLock_->GetTTL().count()}
             };
         }
         else if (method == "nav.unlock") {
@@ -1220,8 +1222,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             }
 
             // Check ownership
-            if (!navLock_.IsOwnedBy(ownerUUID)) {
-                if (!navLock_.isLocked) {
+            if (!navLock_->IsOwnedBy(ownerUUID)) {
+                if (!navLock_->IsLocked()) {
                     return json{
                         {"success", false},
                         {"error", "Navigation not locked"}
@@ -1230,13 +1232,13 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
                     return json{
                         {"success", false},
                         {"error", "Not the lock owner"},
-                        {"lock_owner", navLock_.ownerUUID}
+                        {"lock_owner", navLock_->GetOwnerUUID()}
                     };
                 }
             }
 
             std::cout << "Navigation lock released by " << ownerUUID << std::endl;
-            navLock_ = NavigationLock();  // Reset to unlocked
+            navLock_->Reset();
 
             return json{
                 {"success", true},
@@ -1244,23 +1246,23 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "nav.lock_status") {
-            if (!navLock_.isLocked || navLock_.IsExpired()) {
+            if (!navLock_->IsLocked() || navLock_->IsExpired()) {
                 return json{
                     {"locked", false}
                 };
             }
 
-            auto timeRemaining = navLock_.ttlMs -
+            auto timeRemaining = navLock_->GetTTL() -
                 std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::steady_clock::now() - navLock_.grantedTime
+                    std::chrono::steady_clock::now() - navLock_->GetGrantedTime()
                 );
 
             return json{
                 {"locked", true},
-                {"owner_uuid", navLock_.ownerUUID},
+                {"owner_uuid", navLock_->GetOwnerUUID()},
                 {"time_remaining_ms", timeRemaining.count()},
                 {"granted_at", std::chrono::duration_cast<std::chrono::milliseconds>(
-                    navLock_.grantedTime.time_since_epoch()
+                    navLock_->GetGrantedTime().time_since_epoch()
                 ).count()}
             };
         }

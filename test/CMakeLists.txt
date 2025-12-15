@@ -71,6 +71,7 @@ target_sources(unit_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/core/TextureManager.cpp
     ${CMAKE_SOURCE_DIR}/src/core/PolygonOverlay.cpp
     ${CMAKE_SOURCE_DIR}/src/core/PolygonLoader.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/NavigationLock.cpp
     ${CMAKE_SOURCE_DIR}/protobuf/cell_polygons.pb.cc
 )
 
