@@ -23,10 +23,15 @@ class Animation {
 public:
     Animation();
 
-    // Start a new animation
+    // Start a new animation (uses current SDL time)
     void Start(Vec2 startPos, double startZoom,
                Vec2 targetPos, double targetZoom,
                AnimationMode mode, double durationMs = 300.0);
+
+    // Start a new animation with explicit start time (for testing)
+    void StartAt(Vec2 startPos, double startZoom,
+                 Vec2 targetPos, double targetZoom,
+                 AnimationMode mode, double startTimeMs, double durationMs = 300.0);
 
     // Update animation state (called each frame)
     // Returns true if animation is complete

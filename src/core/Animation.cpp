@@ -40,9 +40,16 @@ Animation::Animation()
 void Animation::Start(Vec2 startPos, double startZoom,
                      Vec2 targetPos, double targetZoom,
                      AnimationMode mode, double durationMs) {
+    StartAt(startPos, startZoom, targetPos, targetZoom, mode,
+            static_cast<double>(SDL_GetTicks()), durationMs);
+}
+
+void Animation::StartAt(Vec2 startPos, double startZoom,
+                       Vec2 targetPos, double targetZoom,
+                       AnimationMode mode, double startTimeMs, double durationMs) {
     active_ = true;
     mode_ = mode;
-    startTime_ = static_cast<double>(SDL_GetTicks());
+    startTime_ = startTimeMs;
     duration_ = durationMs;
 
     startPosition_ = startPos;
@@ -69,6 +76,15 @@ bool Animation::Update(double currentTimeMs, Vec2& outPos, double& outZoom) {
 
     // SMOOTH mode: interpolate over time
     double elapsed = currentTimeMs - startTime_;
+
+    // Handle zero or very small duration - snap to target immediately
+    if (duration_ <= 0.0) {
+        outPos = targetPosition_;
+        outZoom = targetZoom_;
+        active_ = false;
+        return true;  // Animation complete
+    }
+
     double t = elapsed / duration_;
 
     if (t >= 1.0) {

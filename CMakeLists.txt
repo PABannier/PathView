@@ -143,6 +143,14 @@ if(BUILD_MCP_SERVER)
     add_subdirectory(src/api)
 endif()
 
+# Enable testing
+option(BUILD_TESTING "Build test suite" ON)
+
+if(BUILD_TESTING)
+    enable_testing()
+    add_subdirectory(test)
+endif()
+
 # Print configuration summary
 message(STATUS "=== PathView Configuration ===")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
