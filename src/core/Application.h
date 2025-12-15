@@ -59,6 +59,7 @@ private:
     void RenderMenuBar();
     void RenderToolbar();
     void RenderSidebar();
+    void RenderWelcomeOverlay();
     void RenderSlideInfoTab();
     void RenderPolygonTab();
 
@@ -107,4 +108,5 @@ private:
 
     // Toolbar configuration
     static constexpr float TOOLBAR_HEIGHT = 40.0f;
+    static constexpr float STATUS_BAR_HEIGHT = 28.0f;
 };

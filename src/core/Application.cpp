@@ -17,6 +17,10 @@
 #include <SDL_timer.h>
 #include <nfd.hpp>
 #include <iostream>
+#include <algorithm>
+#include <filesystem>
+#include <limits>
+#include <cfloat>
 
 Application::Application()
     : window_(nullptr)
@@ -234,7 +238,8 @@ void Application::ProcessEvents() {
                     viewport_->SetWindowSize(windowWidth_, windowHeight_);
                 }
                 if (minimap_) {
-                    minimap_->SetWindowSize(windowWidth_, windowHeight_);
+                    int minimapHeight = std::max(0, windowHeight_ - static_cast<int>(STATUS_BAR_HEIGHT));
+                    minimap_->SetWindowSize(windowWidth_, minimapHeight);
                 }
             }
         }
@@ -247,6 +252,28 @@ void Application::ProcessEvents() {
             // Handle keyboard shortcuts
             if (event.key.keysym.sym == SDLK_r && viewport_) {
                 viewport_->ResetView();
+            }
+
+            const SDL_Keymod mods = SDL_GetModState();
+            bool shortcutMod = (mods & (KMOD_CTRL | KMOD_GUI)) != 0;
+
+            if (shortcutMod && event.key.repeat == 0) {
+                switch (event.key.keysym.sym) {
+                    case SDLK_o:
+                        OpenFileDialog();
+                        break;
+                    case SDLK_p:
+                        OpenPolygonFileDialog();
+                        break;
+                    case SDLK_b:
+                        sidebarVisible_ = !sidebarVisible_;
+                        break;
+                    case SDLK_q:
+                        running_ = false;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -367,7 +394,7 @@ void Application::Render() {
 
     // Render minimap overlay
     if (slideLoader_ && viewport_ && minimap_) {
-        minimap_->Render(*viewport_, false, 0);
+        minimap_->Render(*viewport_, sidebarVisible_, sidebarVisible_ ? SIDEBAR_WIDTH : 0.0f);
     }
 
     // Render ImGui
@@ -382,6 +409,7 @@ void Application::RenderUI() {
     RenderMenuBar();
     RenderToolbar();
     RenderSidebar();
+    RenderWelcomeOverlay();
 }
 
 void Application::OpenFileDialog() {
@@ -448,11 +476,12 @@ void Application::LoadSlide(const std::string& path) {
     );
 
     // Create minimap
+    int minimapHeight = std::max(0, windowHeight_ - static_cast<int>(STATUS_BAR_HEIGHT));
     minimap_ = std::make_unique<Minimap>(
         slideLoader_.get(),
         renderer_,
         windowWidth_,
-        windowHeight_
+        minimapHeight
     );
 
     // Set slide dimensions in polygon overlay for spatial indexing
@@ -589,15 +618,35 @@ void Application::RenderToolbar() {
         ImGuiWindowFlags_NoScrollbar;
 
     if (ImGui::Begin("##Toolbar", nullptr, flags)) {
+        const float buttonHeight = TOOLBAR_HEIGHT - 10.0f;
+        const ImVec2 buttonSize(150.0f, buttonHeight);
+
+        const char* sidebarLabel = sidebarVisible_ ? ICON_FA_EYE_SLASH "  Hide Sidebar"
+                                                   : ICON_FA_EYE "  Show Sidebar";
+        if (ImGui::Button(sidebarLabel, buttonSize)) {
+            sidebarVisible_ = !sidebarVisible_;
+        }
+        ImGui::SameLine();
+
+        if (viewport_) {
+            if (ImGui::Button(ICON_FA_CROSSHAIRS "  Reset View", buttonSize)) {
+                viewport_->ResetView();
+            }
+        } else {
+            ImGui::BeginDisabled();
+            ImGui::Button(ICON_FA_CROSSHAIRS "  Reset View", buttonSize);
+            ImGui::EndDisabled();
+        }
+        ImGui::SameLine();
+
         // Polygon tool button (toggle style)
-        // Save state before button to ensure push/pop balance
         bool wasActive = annotationManager_ && annotationManager_->IsToolActive();
 
         if (wasActive) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
         }
 
-        if (ImGui::Button("Polygon Tool", ImVec2(120, 30))) {
+        if (ImGui::Button(ICON_FA_DRAW_POLYGON "  Polygon Tool", buttonSize)) {
             if (annotationManager_) {
                 annotationManager_->SetToolActive(!wasActive);
             }
@@ -663,6 +712,46 @@ void Application::RenderSidebar() {
 
             ImGui::EndTabBar();
         }
+    }
+    ImGui::End();
+}
+
+void Application::RenderWelcomeOverlay() {
+    if (slideLoader_ && slideLoader_->IsValid()) {
+        return;
+    }
+
+    ImGui::SetNextWindowPos(
+        ImVec2(windowWidth_ * 0.5f, windowHeight_ * 0.5f),
+        ImGuiCond_Always,
+        ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(420.0f, 0.0f));
+    ImGui::SetNextWindowSizeConstraints(
+        ImVec2(420.0f, 0.0f),
+        ImVec2(420.0f, std::numeric_limits<float>::max()));
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse |
+                             ImGuiWindowFlags_NoResize |
+                             ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoTitleBar |
+                             ImGuiWindowFlags_AlwaysAutoResize;
+
+    if (ImGui::Begin("##WelcomeOverlay", nullptr, flags)) {
+        ImGui::Text("Welcome to PathView");
+        ImGui::Separator();
+        ImGui::TextWrapped("Load a whole-slide image to explore it with high-resolution zoom and pan.");
+        ImGui::Spacing();
+
+        if (ImGui::Button(ICON_FA_FOLDER_OPEN "  Open Slide (Ctrl+O)", ImVec2(-FLT_MIN, 0.0f))) {
+            OpenFileDialog();
+        }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::TextDisabled("Quick tips");
+        ImGui::BulletText("Mouse wheel to zoom, click + drag to pan");
+        ImGui::BulletText("Use the minimap to jump to regions of interest");
+        ImGui::BulletText("Load polygon data to see AI-detected cells overlaid");
     }
     ImGui::End();
 }
@@ -945,4 +1034,3 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
         throw std::runtime_error(std::string("JSON error: ") + e.what());
     }
 }
-

@@ -10,9 +10,13 @@
 // Icons used in PathView UI (using proper UTF-8 encoding)
 #define ICON_FA_HAND "\xef\x89\x96"                      // U+F256 - hand (pan tool)
 #define ICON_FA_DRAW_POLYGON "\xef\x97\xae"              // U+F5EE - draw-polygon
+#define ICON_FA_LAYER_GROUP "\xef\x97\xbd"               // U+F5FD - layer-group
 #define ICON_FA_MAGNIFYING_GLASS_PLUS "\xef\x80\x8e"     // U+F00E - magnifying-glass-plus (zoom in)
 #define ICON_FA_MAGNIFYING_GLASS_MINUS "\xef\x80\x90"    // U+F010 - magnifying-glass-minus (zoom out)
 #define ICON_FA_EXPAND "\xef\x81\xa5"                    // U+F065 - expand (zoom to fit)
 #define ICON_FA_IMAGE "\xef\x80\xbe"                     // U+F03E - image (slide info tab)
 #define ICON_FA_SHAPES "\xef\x98\x9f"                    // U+F61F - shapes (cell polygons tab)
 #define ICON_FA_FOLDER_OPEN "\xef\x81\xbc"               // U+F07C - folder-open (empty state)
+#define ICON_FA_EYE "\xef\x81\xae"                       // U+F06E - eye
+#define ICON_FA_EYE_SLASH "\xef\x81\xb0"                  // U+F070 - eye-slash
+#define ICON_FA_CROSSHAIRS "\xef\x81\x9b"                 // U+F05B - crosshairs
