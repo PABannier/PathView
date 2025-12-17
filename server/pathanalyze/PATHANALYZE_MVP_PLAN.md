@@ -3,6 +3,10 @@
 ## Goal
 Ship a Python (LangChain/LangGraph) “PathAnalyze” agent that, upon a client request, handshakes with the PathView MCP server, locks navigation, drives smooth camera moves, draws ROIs, fetches metrics, and streams Action Cards back to the viewer. Focus on a happy-path single-agent session.
 
+## Repo Layout
+- **PathView (client + MCP server):** repo root (C++/CMake)
+- **PathAnalyze (server):** `server/pathanalyze/` (Python/pyproject)
+
 ## Architecture Snapshot
 - **Entrypoints**: FastAPI (or Typer CLI) to accept “start analysis” requests from the GUI; background task spins a LangGraph run.
 - **MCP client**: HTTP+SSE transport to PathView MCP (`/sse` + `/mcp`), wrapping tools: `agent_hello`, `nav.lock/unlock`, `move_camera/await`, `capture_snapshot` or stream URL, `annotations.create`, `roi_metrics`, `action_card.*`.

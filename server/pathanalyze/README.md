@@ -7,7 +7,8 @@ LangGraph-based pathology analysis agent that connects to PathView MCP server.
 ### Installation
 
 ```bash
-# From the pathview directory
+# From the repo root
+cd server/pathanalyze
 pip install -e ".[dev]"
 ```
 
@@ -16,6 +17,7 @@ pip install -e ".[dev]"
 Copy `.env.example` to `.env` and configure:
 
 ```bash
+cd server/pathanalyze
 cp .env.example .env
 ```
 
@@ -36,8 +38,8 @@ TEST_POLYGON_PATH=/path/to/your/test.pb
 ### Running
 
 ```bash
-# Start PathView MCP server first (in separate terminal)
-./build/pathview-mcp
+# Start PathView MCP server first (in separate terminal, from repo root)
+(cd ../.. && ./build/pathview-mcp)
 
 # Start PathAnalyze
 python -m pathanalyze
@@ -116,9 +118,10 @@ Tests with actual PathView MCP server:
 
 ```bash
 # Start PathView MCP server first
-./build/pathview-mcp
+(cd ../.. && ./build/pathview-mcp)
 
 # Run integration tests
+cd server/pathanalyze
 pytest -m integration
 ```
 
@@ -187,6 +190,7 @@ pytest --cov=pathanalyze --cov-report=html
 
 ```bash
 # Format code
+cd server/pathanalyze
 ruff format pathanalyze/ tests/
 
 # Lint
@@ -286,7 +290,7 @@ async def reliable_call(client, tool_name, **kwargs):
 ### MCP Server Not Found
 Ensure PathView MCP server is running:
 ```bash
-./build/pathview-mcp
+(cd ../.. && ./build/pathview-mcp)
 ```
 
 Check the server URL in `.env`:
@@ -309,6 +313,7 @@ PATHANALYZE_MCP_BASE_URL=http://127.0.0.1:9000
 ### Import Errors
 Reinstall in editable mode:
 ```bash
+cd server/pathanalyze
 pip install -e ".[dev]"
 ```
 

@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "pathanalyze"
 version = "0.1.0"
 description = "LangGraph-based pathology analysis agent"
-readme = "README_pathanalyze.md"
+readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [

@@ -737,6 +737,11 @@ PathView uses two coordinate systems:
 
 Complete example using pathanalyze MCP client:
 
+```bash
+# From repo root (PathAnalyze client library lives with the PathAnalyze service)
+pip install -e server/pathanalyze
+```
+
 ```python
 import asyncio
 import httpx
