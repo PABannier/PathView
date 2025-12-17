@@ -36,6 +36,9 @@ class RunStatus(BaseModel):
 # In-memory run tracking (replace with DB in production)
 runs: dict[str, RunStatus] = {}
 
+# Detailed state storage for completed runs
+runs_detailed: dict[str, "AnalysisState"] = {}  # type: ignore
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -109,30 +112,91 @@ async def get_run_status(run_id: str) -> RunStatus:
     return runs[run_id]
 
 
+@app.get("/runs/{run_id}/details")
+async def get_run_details(run_id: str) -> dict:
+    """
+    Get detailed state of an analysis run.
+
+    Returns the complete AnalysisState including steps_log, ROI metrics,
+    and full execution details.
+    """
+    if run_id not in runs_detailed:
+        raise HTTPException(
+            status_code=404,
+            detail="Run details not found. Details are only available after run completes."
+        )
+    return runs_detailed[run_id].model_dump()
+
+
 async def run_analysis(run_id: str, request: AnalysisRequest):
     """
-    Execute analysis (placeholder for LangGraph integration).
+    Execute LangGraph analysis workflow.
 
-    This will be replaced with actual LangGraph execution in Step 3.
+    Creates MCP client connection, builds initial state, executes the
+    LangGraph workflow, and stores detailed results.
     """
+    from pathanalyze.graph import AnalysisState, create_analysis_graph, run_graph_with_cleanup
+    from pathanalyze.mcp.tools import MCPTools
+
+    mcp_client = None
+
     try:
         runs[run_id].status = "running"
         runs[run_id].message = "Connecting to MCP server"
 
-        # Placeholder: Just test connection
-        async with MCPClient(str(settings.mcp_base_url)) as client:
-            await client.initialize()
-            runs[run_id].message = "Connected to MCP server"
+        # Connect to MCP
+        mcp_client = MCPClient(str(settings.mcp_base_url))
+        await mcp_client.connect()
+        await mcp_client.initialize()
+        mcp_tools = MCPTools(mcp_client)
 
-            # TODO: Execute LangGraph here
+        runs[run_id].message = "Connected, starting analysis workflow"
 
-        runs[run_id].status = "completed"
-        runs[run_id].message = "Analysis complete (placeholder)"
+        # Create initial state
+        initial_state = AnalysisState(
+            run_id=run_id,
+            slide_path=request.slide_path,
+            task=request.task,
+            roi_hint=request.roi_hint,
+            mcp_base_url=str(settings.mcp_base_url),
+            status="running"
+        )
+
+        # Create and run graph
+        graph = create_analysis_graph(mcp_tools)
+        final_state = await run_graph_with_cleanup(graph, initial_state, mcp_tools)
+
+        # Update run status
+        runs[run_id].status = final_state.status
+        runs[run_id].message = final_state.summary or final_state.error_message or "Complete"
+
+        # Store detailed state
+        runs_detailed[run_id] = final_state
+
+        logger.info(
+            "Analysis workflow completed",
+            extra={
+                "run_id": run_id,
+                "status": final_state.status,
+                "steps": len(final_state.steps_log)
+            }
+        )
 
     except Exception as e:
         logger.error("Analysis failed", extra={"run_id": run_id, "error": str(e)})
         runs[run_id].status = "failed"
         runs[run_id].message = str(e)
+
+    finally:
+        # Always close MCP connection
+        if mcp_client:
+            try:
+                await mcp_client.close()
+            except Exception as e:
+                logger.error(
+                    "Failed to close MCP client",
+                    extra={"run_id": run_id, "error": str(e)}
+                )
 
 
 @app.exception_handler(MCPException)

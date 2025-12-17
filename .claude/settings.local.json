@@ -35,7 +35,13 @@
       "Bash(pytest:*)",
       "Bash(./pathview-mcp:*)",
       "Bash(./pathview:*)",
-      "Bash(./build/test/unit_tests)"
+      "Bash(./build/test/unit_tests)",
+      "Bash(python -m pytest:*)",
+      "Bash(poetry:*)",
+      "Bash(source .venv/bin/activate)",
+      "Bash(.venv/bin/python -m pytest tests/test_graph_nodes.py -v -m unit)",
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(.venv/bin/python:*)"
     ],
     "deny": [],
     "ask": []
