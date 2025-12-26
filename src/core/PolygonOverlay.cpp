@@ -48,9 +48,13 @@ bool PolygonOverlay::LoadPolygons(const std::string& filepath) {
 
     // Load polygons from binary file
     std::map<int, SDL_Color> loadedColors;
-    if (!PolygonLoader::Load(filepath, polygons_, loadedColors)) {
+    std::map<int, std::string> loadedClassNames;
+    if (!PolygonLoader::Load(filepath, polygons_, loadedColors, loadedClassNames)) {
         return false;
     }
+
+    // Store class names
+    classNames_ = loadedClassNames;
 
     // Use loaded colors or initialize defaults
     if (!loadedColors.empty()) {
@@ -323,6 +327,16 @@ SDL_Color PolygonOverlay::GetClassColor(int classId) const {
 
     // Return default color if not found
     return DEFAULT_COLORS[classId % NUM_DEFAULT_COLORS];
+}
+
+std::string PolygonOverlay::GetClassName(int classId) const {
+    auto it = classNames_.find(classId);
+    if (it != classNames_.end()) {
+        return it->second;
+    }
+
+    // Fallback to generic name if not found
+    return "Class " + std::to_string(classId);
 }
 
 void PolygonOverlay::InitializeDefaultColors() {

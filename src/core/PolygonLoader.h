@@ -22,11 +22,13 @@ public:
      * @param filepath Path to .pb or .protobuf file
      * @param outPolygons Output vector of polygons
      * @param outClassColors Output map of class ID to color
+     * @param outClassNames Output map of class ID to class name
      * @return true if successful, false otherwise
      */
     static bool Load(const std::string& filepath,
                      std::vector<Polygon>& outPolygons,
-                     std::map<int, SDL_Color>& outClassColors);
+                     std::map<int, SDL_Color>& outClassColors,
+                     std::map<int, std::string>& outClassNames);
 
 private:
     /**
@@ -38,10 +40,20 @@ private:
                                   std::map<std::string, int>& outMapping);
 
     /**
-     * Generate default colors for classes
+     * Generate default colors for classes (fallback)
      * @param numClasses Number of classes
      * @param outColors Output map of class ID to color
      */
     static void GenerateDefaultColors(int numClasses,
                                       std::map<int, SDL_Color>& outColors);
+
+    /**
+     * Generate colors for classes based on cell type names
+     * Uses a predefined color map for known cell types.
+     * @param classMapping Map of class name to class ID
+     * @param outColors Output map of class ID to color
+     */
+    static void GenerateColorsFromClassNames(
+        const std::map<std::string, int>& classMapping,
+        std::map<int, SDL_Color>& outColors);
 };

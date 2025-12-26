@@ -968,7 +968,8 @@ void Application::RenderPolygonTab() {
                           1.0f);
 
             ImGui::PushID(classId);
-            if (ImGui::ColorEdit3(("Class " + std::to_string(classId)).c_str(),
+            std::string className = polygonOverlay_->GetClassName(classId);
+            if (ImGui::ColorEdit3(className.c_str(),
                                   (float*)&imColor,
                                   ImGuiColorEditFlags_NoInputs)) {
                 polygonOverlay_->SetClassColor(classId, {

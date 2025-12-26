@@ -81,6 +81,7 @@ public:
 
     // Get class information for UI legend
     const std::vector<int>& GetClassIds() const { return classIds_; }
+    std::string GetClassName(int classId) const;
     int GetPolygonCount() const { return static_cast<int>(polygons_.size()); }
     const std::vector<Polygon>& GetPolygons() const { return polygons_; }
 
@@ -92,6 +93,7 @@ private:
     std::vector<Polygon> polygons_;
     std::unique_ptr<PolygonIndex> spatialIndex_;
     std::map<int, SDL_Color> classColors_;
+    std::map<int, std::string> classNames_;  // Map of class ID to class name
     std::vector<int> classIds_;  // Ordered list of class IDs
     bool visible_;
     float opacity_;
