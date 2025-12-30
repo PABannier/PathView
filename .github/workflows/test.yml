@@ -140,33 +140,10 @@ jobs:
           build/*.log
         retention-days: 30
 
-  test-pathanalyze:
-    name: PathAnalyze (Python) Tests
-    runs-on: ubuntu-22.04
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-
-    - name: Install PathAnalyze dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e "server/pathanalyze[dev]"
-
-    - name: Run PathAnalyze tests
-      run: |
-        cd server/pathanalyze
-        pytest || echo "Some PathAnalyze tests failed"
-
   test-summary:
     name: Test Summary
     runs-on: ubuntu-22.04
-    needs: [test-ubuntu, test-macos, test-pathanalyze]
+    needs: [test-ubuntu, test-macos]
     if: always()
 
     steps:

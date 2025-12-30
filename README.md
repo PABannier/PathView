@@ -116,8 +116,6 @@ cmake --build build -j$(nproc)
 
 PathView includes an MCP (Model Context Protocol) server that enables AI agents to programmatically control the viewer, capture screenshots, and analyze tissue regions.
 
-PathAnalyze (the remote agent service that drives PathView via MCP) is located in `server/pathanalyze/`.
-
 ### Starting the MCP Server
 
 ```bash
@@ -184,8 +182,6 @@ pathview/
 │   ├── TileCache.{h,cpp}    # LRU tile cache
 │   ├── TextureManager.{h,cpp}# SDL texture management
 │   └── Minimap.{h,cpp}      # Overview widget
-├── server/
-│   └── pathanalyze/          # Python agent service (remote server)
 └── external/
     └── imgui/               # ImGui library (downloaded)
 ```
