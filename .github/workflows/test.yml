@@ -42,10 +42,7 @@ jobs:
     - name: Install vcpkg dependencies
       run: |
         export VCPKG_DEFAULT_TRIPLET=x64-linux
-        ~/vcpkg/vcpkg install \
-          sdl2 \
-          sdl2-image \
-          nativefiledialog-extended
+        ~/vcpkg/vcpkg install
 
     - name: Configure CMake
       run: |
@@ -62,10 +59,8 @@ jobs:
         chmod +x run_tests.sh
         ./run_tests.sh || echo "Some unit tests failed"
 
-    - name: Run MCP integration tests
-      run: |
-        chmod +x run_mcp_tests.sh
-        ./run_mcp_tests.sh || echo "Some MCP tests failed"
+    # Note: MCP integration tests require a slide file which is not available in CI
+    # To run locally: ./run_mcp_tests.sh --slide /path/to/slide.svs
 
     - name: Upload test results
       if: always()
@@ -105,10 +100,7 @@ jobs:
 
     - name: Install vcpkg dependencies
       run: |
-        vcpkg install \
-          sdl2 \
-          sdl2-image \
-          nativefiledialog-extended
+        vcpkg install
 
     - name: Configure CMake
       run: |
@@ -125,10 +117,8 @@ jobs:
         chmod +x run_tests.sh
         ./run_tests.sh || echo "Some unit tests failed"
 
-    - name: Run MCP integration tests
-      run: |
-        chmod +x run_mcp_tests.sh
-        ./run_mcp_tests.sh || echo "Some MCP tests failed"
+    # Note: MCP integration tests require a slide file which is not available in CI
+    # To run locally: ./run_mcp_tests.sh --slide /path/to/slide.svs
 
     - name: Upload test results
       if: always()
@@ -140,44 +130,94 @@ jobs:
           build/*.log
         retention-days: 30
 
-  test-summary:
-    name: Test Summary
-    runs-on: ubuntu-22.04
-    needs: [test-ubuntu, test-macos]
-    if: always()
+  test-windows:
+    name: Windows 2022 Tests (MSVC)
+    runs-on: windows-2022
 
     steps:
-    - name: Download all test results
-      uses: actions/download-artifact@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
       with:
-        pattern: test-results-*
-        merge-multiple: true
+        submodules: recursive
 
-    - name: Generate test summary
+    - name: Setup MSVC
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup vcpkg
       run: |
-        echo "# Test Suite Results" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## Status by Platform" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
+        git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
+        C:\vcpkg\bootstrap-vcpkg.bat
+        echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
+        echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
 
-        if [ "${{ needs.test-ubuntu.result }}" == "success" ]; then
-          echo "✅ Ubuntu 22.04: Passed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "❌ Ubuntu 22.04: Failed" >> $GITHUB_STEP_SUMMARY
-        fi
+    - name: Cache vcpkg packages
+      uses: actions/cache@v4
+      with:
+        path: C:\vcpkg\installed
+        key: vcpkg-windows-x64-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          vcpkg-windows-x64-
 
-        if [ "${{ needs.test-macos.result }}" == "success" ]; then
-          echo "✅ macOS 14 (ARM64): Passed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "❌ macOS 14 (ARM64): Failed" >> $GITHUB_STEP_SUMMARY
-        fi
+    - name: Install vcpkg dependencies
+      run: |
+        C:\vcpkg\vcpkg install --triplet x64-windows
 
-        if [ "${{ needs.test-pathanalyze.result }}" == "success" ]; then
-          echo "✅ PathAnalyze (Python): Passed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "❌ PathAnalyze (Python): Failed" >> $GITHUB_STEP_SUMMARY
-        fi
+    - name: Download OpenSlide Windows binaries
+      run: |
+        $openslideVersion = "4.0.0"
+        $openslideUrl = "https://github.com/openslide/openslide-bin/releases/download/v${openslideVersion}/openslide-win64-${openslideVersion}.zip"
+        Invoke-WebRequest -Uri $openslideUrl -OutFile openslide.zip
+        Expand-Archive -Path openslide.zip -DestinationPath C:\openslide
+        # Move contents up one level (removes version directory)
+        $innerDir = Get-ChildItem -Path C:\openslide -Directory | Select-Object -First 1
+        Move-Item -Path "$($innerDir.FullName)\*" -Destination C:\openslide -Force
+        Remove-Item -Path $innerDir.FullName -Recurse -Force
+        echo "OPENSLIDE_HOME=C:\openslide" >> $env:GITHUB_ENV
+        # Add OpenSlide bin to PATH for runtime DLL discovery
+        echo "C:\openslide\bin" >> $env:GITHUB_PATH
 
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## Test Artifacts" >> $GITHUB_STEP_SUMMARY
-        echo "Test results and logs are available in the artifacts section." >> $GITHUB_STEP_SUMMARY
+    - name: Configure CMake
+      run: |
+        cmake -B build -G "Visual Studio 17 2022" -A x64 `
+          -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake `
+          -DCMAKE_PREFIX_PATH=C:\openslide `
+          -DBUILD_TESTING=ON
+
+    - name: Build project
+      run: cmake --build build --config Release --parallel
+
+    - name: Copy OpenSlide DLLs to build directory
+      run: |
+        Copy-Item -Path "C:\openslide\bin\*.dll" -Destination "build\Release\" -Force
+        Copy-Item -Path "C:\openslide\bin\*.dll" -Destination "build\test\" -Force -ErrorAction SilentlyContinue
+
+    - name: Run unit tests
+      run: |
+        cd build
+        ctest --build-config Release --output-on-failure --timeout 120
+      continue-on-error: true
+
+    # Note: MCP integration tests require a slide file which is not available in CI
+    # To run locally: .\run_mcp_tests.sh --slide C:\path\to\slide.svs
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-windows
+        path: |
+          build/test/*.xml
+          build/*.log
+          build/Testing/Temporary/LastTest.log
+        retention-days: 30
+
+    - name: Upload build artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: pathview-windows-x64
+        path: |
+          build/Release/pathview.exe
+          build/Release/pathview-mcp.exe
+          build/Release/*.dll
+        retention-days: 7
