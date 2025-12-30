@@ -42,10 +42,7 @@ jobs:
     - name: Install vcpkg dependencies
       run: |
         export VCPKG_DEFAULT_TRIPLET=x64-linux
-        ~/vcpkg/vcpkg install \
-          sdl2 \
-          sdl2-image \
-          nativefiledialog-extended
+        ~/vcpkg/vcpkg install
 
     - name: Configure CMake
       run: |
@@ -105,10 +102,7 @@ jobs:
 
     - name: Install vcpkg dependencies
       run: |
-        vcpkg install \
-          sdl2 \
-          sdl2-image \
-          nativefiledialog-extended
+        vcpkg install
 
     - name: Configure CMake
       run: |
@@ -139,45 +133,3 @@ jobs:
           build/test/*.xml
           build/*.log
         retention-days: 30
-
-  test-summary:
-    name: Test Summary
-    runs-on: ubuntu-22.04
-    needs: [test-ubuntu, test-macos]
-    if: always()
-
-    steps:
-    - name: Download all test results
-      uses: actions/download-artifact@v4
-      with:
-        pattern: test-results-*
-        merge-multiple: true
-
-    - name: Generate test summary
-      run: |
-        echo "# Test Suite Results" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## Status by Platform" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-
-        if [ "${{ needs.test-ubuntu.result }}" == "success" ]; then
-          echo "✅ Ubuntu 22.04: Passed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "❌ Ubuntu 22.04: Failed" >> $GITHUB_STEP_SUMMARY
-        fi
-
-        if [ "${{ needs.test-macos.result }}" == "success" ]; then
-          echo "✅ macOS 14 (ARM64): Passed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "❌ macOS 14 (ARM64): Failed" >> $GITHUB_STEP_SUMMARY
-        fi
-
-        if [ "${{ needs.test-pathanalyze.result }}" == "success" ]; then
-          echo "✅ PathAnalyze (Python): Passed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "❌ PathAnalyze (Python): Failed" >> $GITHUB_STEP_SUMMARY
-        fi
-
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## Test Artifacts" >> $GITHUB_STEP_SUMMARY
-        echo "Test results and logs are available in the artifacts section." >> $GITHUB_STEP_SUMMARY
