@@ -90,23 +90,24 @@ jobs:
           openslide \
           protobuf \
           abseil \
-          vcpkg \
           pkg-config
 
-    - name: Set vcpkg triplet
+    - name: Install vcpkg
       run: |
+        git clone https://github.com/Microsoft/vcpkg.git ~/vcpkg
+        ~/vcpkg/bootstrap-vcpkg.sh
+        echo "VCPKG_ROOT=$HOME/vcpkg" >> $GITHUB_ENV
         echo "VCPKG_DEFAULT_TRIPLET=arm64-osx" >> $GITHUB_ENV
-        echo "VCPKG_ROOT=$(brew --prefix vcpkg)" >> $GITHUB_ENV
 
     - name: Install vcpkg dependencies
       run: |
-        vcpkg install
+        ~/vcpkg/vcpkg install
 
     - name: Configure CMake
       run: |
         cmake -B build \
           -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_TOOLCHAIN_FILE=$(brew --prefix vcpkg)/scripts/buildsystems/vcpkg.cmake \
+          -DCMAKE_TOOLCHAIN_FILE=$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake \
           -DBUILD_TESTING=ON
 
     - name: Build project
