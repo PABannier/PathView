@@ -73,6 +73,18 @@ target_include_directories(unit_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/external/cpp-mcp/common  # For json.hpp
 )
 
+# Ensure protobuf headers from the linked library are preferred over system paths.
+set(PATHVIEW_PROTOBUF_INCLUDE_DIRS "")
+if(TARGET ${PATHVIEW_PROTOBUF_TARGET})
+    get_target_property(PATHVIEW_PROTOBUF_INCLUDE_DIRS ${PATHVIEW_PROTOBUF_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+elseif(Protobuf_INCLUDE_DIRS)
+    set(PATHVIEW_PROTOBUF_INCLUDE_DIRS ${Protobuf_INCLUDE_DIRS})
+endif()
+
+if(PATHVIEW_PROTOBUF_INCLUDE_DIRS)
+    target_include_directories(unit_tests SYSTEM BEFORE PRIVATE ${PATHVIEW_PROTOBUF_INCLUDE_DIRS})
+endif()
+
 if(NOT TARGET OpenSlide::OpenSlide AND OPENSLIDE_INCLUDE_DIRS)
     target_include_directories(unit_tests PRIVATE ${OPENSLIDE_INCLUDE_DIRS})
 endif()
