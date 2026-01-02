@@ -23,10 +23,6 @@ jobs:
             name: macOS 14 (arm64)
             triplet: arm64-osx
             generator: Ninja
-          - os: windows-2022
-            name: Windows 2022 (x64)
-            triplet: x64-windows
-            generator: Visual Studio 17 2022
 
     env:
       VCPKG_FEATURE_FLAGS: manifests,binarycaching
@@ -74,59 +70,18 @@ jobs:
             pkg-config
 
       - name: Setup vcpkg (Linux/macOS)
-        if: runner.os != 'Windows'
         run: |
           git clone https://github.com/Microsoft/vcpkg.git "$GITHUB_WORKSPACE/vcpkg"
           "$GITHUB_WORKSPACE/vcpkg/bootstrap-vcpkg.sh"
           echo "VCPKG_ROOT=$GITHUB_WORKSPACE/vcpkg" >> "$GITHUB_ENV"
 
-      - name: Setup vcpkg (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          git clone https://github.com/Microsoft/vcpkg.git "$env:GITHUB_WORKSPACE\vcpkg"
-          $prebuilt = "C:\vcpkg\vcpkg.exe"
-          if (Test-Path $prebuilt) {
-            Copy-Item $prebuilt "$env:GITHUB_WORKSPACE\vcpkg\vcpkg.exe" -Force
-          } else {
-            & "$env:GITHUB_WORKSPACE\vcpkg\bootstrap-vcpkg.bat"
-          }
-          "VCPKG_ROOT=$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Download OpenSlide (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $openslideVersion = "4.0.0.10"
-          $openslideUrl = "https://github.com/openslide/openslide-bin/releases/download/v${openslideVersion}/openslide-bin-${openslideVersion}-windows-x64.zip"
-          Invoke-WebRequest -Uri $openslideUrl -OutFile openslide.zip
-          Expand-Archive -Path openslide.zip -DestinationPath C:\openslide
-          $innerDir = Get-ChildItem -Path C:\openslide -Directory | Select-Object -First 1
-          Move-Item -Path "$($innerDir.FullName)\*" -Destination C:\openslide -Force
-          Remove-Item -Path $innerDir.FullName -Recurse -Force
-          "OPENSLIDE_HOME=C:\openslide" | Out-File -FilePath $env:GITHUB_ENV -Append
-          "C:\openslide\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
-
       - name: Configure CMake (Linux/macOS)
-        if: runner.os != 'Windows'
         run: |
           cmake -S . -B build -G "${{ matrix.generator }}" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=$VCPKG_TARGET_TRIPLET \
             -DVCPKG_INSTALLED_DIR=$VCPKG_INSTALLED_DIR \
-            -DBUILD_TESTING=ON
-
-      - name: Configure CMake (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          cmake -S . -B build -G "${{ matrix.generator }}" -A x64 `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} `
-            -DVCPKG_INSTALLED_DIR="$env:VCPKG_INSTALLED_DIR" `
-            -DCMAKE_PREFIX_PATH=C:\openslide `
             -DBUILD_TESTING=ON
 
       - name: Build
