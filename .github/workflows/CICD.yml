@@ -16,7 +16,7 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     permissions:
-      contents: ${{ github.event_name == 'release' && 'write' || 'read' }}
+      contents: write
     strategy:
       fail-fast: false
       matrix:
