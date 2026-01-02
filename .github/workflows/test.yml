@@ -119,7 +119,7 @@ jobs:
           cmake -S . -B build -G "${{ matrix.generator }}" -A x64 `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=$env:VCPKG_TARGET_TRIPLET `
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} `
             -DVCPKG_INSTALLED_DIR="$env:VCPKG_INSTALLED_DIR" `
             -DCMAKE_PREFIX_PATH=C:\openslide `
             -DBUILD_TESTING=ON
