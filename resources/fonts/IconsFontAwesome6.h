@@ -28,3 +28,7 @@
 #define ICON_FA_TIMES_CIRCLE "\xef\x81\x97"              // U+F057 - times-circle
 #define ICON_FA_BAN "\xef\x81\x9e"                       // U+F05E - ban
 #define ICON_FA_LOCK "\xef\x80\xa3"                      // U+F023 - lock
+#define ICON_FA_SERVER "\xef\x88\xb3"                    // U+F233 - server
+#define ICON_FA_PLUG "\xef\x87\xa6"                      // U+F1E6 - plug (connection)
+#define ICON_FA_CIRCLE_EXCLAMATION "\xef\x81\xaa"        // U+F06A - circle-exclamation
+#define ICON_FA_MAGNIFYING_GLASS "\xef\x80\x82"          // U+F002 - magnifying-glass
