@@ -12,6 +12,10 @@
 #include "ScreenshotBuffer.h"
 #include "../api/ipc/IPCServer.h"
 #include "../api/ipc/IPCMessage.h"
+#include "../remote/WsiStreamClient.h"
+#include "../remote/RemoteSlideSource.h"
+#include "../ui/ServerConnectionDialog.h"
+#include "../ui/SlideBrowserDialog.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_impl_sdl2.h"
@@ -191,6 +195,19 @@ bool Application::Initialize() {
 
     // Create annotation manager
     annotationManager_ = std::make_unique<AnnotationManager>(renderer_);
+
+    // Create remote slide dialogs
+    serverConnectionDialog_ = std::make_unique<pathview::ui::ServerConnectionDialog>();
+    serverConnectionDialog_->SetOnConnectedCallback(
+        [this](std::shared_ptr<pathview::remote::WsiStreamClient> client) {
+            OnServerConnected(std::move(client));
+        });
+
+    slideBrowserDialog_ = std::make_unique<pathview::ui::SlideBrowserDialog>();
+    slideBrowserDialog_->SetOnSlideSelectedCallback(
+        [this](const std::string& slideId) {
+            OnRemoteSlideSelected(slideId);
+        });
 
     // Create IPC server for remote control
     ipcServer_ = std::make_unique<pathview::ipc::IPCServer>(
@@ -524,6 +541,14 @@ void Application::RenderUI() {
     RenderSidebar();
     RenderWelcomeOverlay();
 
+    // Render remote slide dialogs
+    if (serverConnectionDialog_) {
+        serverConnectionDialog_->Render();
+    }
+    if (slideBrowserDialog_) {
+        slideBrowserDialog_->Render();
+    }
+
     // Render navigation lock indicator (overlay)
     if (IsNavigationLocked()) {
         RenderNavigationLockIndicator();
@@ -728,6 +753,24 @@ void Application::RenderMenuBar() {
                 OpenPolygonFileDialog();
             }
             ImGui::Separator();
+            if (ImGui::MenuItem("Connect to Server...", nullptr)) {
+                OpenServerConnectionDialog();
+            }
+            if (remoteClient_ && remoteClient_->IsConnected()) {
+                if (ImGui::MenuItem("Disconnect from Server", nullptr)) {
+                    // Clean up remote connection
+                    remoteSlideSource_.reset();
+                    remoteClient_->Disconnect();
+                    remoteClient_.reset();
+                    std::cout << "Disconnected from server" << std::endl;
+                }
+                if (ImGui::MenuItem("Browse Server Slides...", nullptr)) {
+                    if (slideBrowserDialog_) {
+                        slideBrowserDialog_->Open(remoteClient_);
+                    }
+                }
+            }
+            ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Ctrl+Q")) {
                 running_ = false;
             }
@@ -810,6 +853,26 @@ void Application::RenderToolbar() {
             ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
                               "Click to add vertices | Enter/Double-click/Click first point to close | Esc to cancel");
         }
+
+        // Remote connection status indicator (right-aligned)
+        if (remoteClient_ && remoteClient_->IsConnected()) {
+            // Calculate position for right-aligned indicator
+            const char* statusText = ICON_FA_SERVER " Connected";
+            float textWidth = ImGui::CalcTextSize(statusText).x;
+            float padding = 10.0f;
+
+            ImGui::SameLine(static_cast<float>(windowWidth_) - textWidth - padding -
+                           (sidebarVisible_ ? SIDEBAR_WIDTH : 0.0f));
+
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.8f, 0.4f, 1.0f));
+            ImGui::Text("%s", statusText);
+            ImGui::PopStyleColor();
+
+            // Tooltip with server URL on hover
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Connected to: %s", remoteClient_->GetServerUrl().c_str());
+            }
+        }
     }
     ImGui::End();
 }
@@ -872,7 +935,9 @@ void Application::RenderSidebar() {
 }
 
 void Application::RenderWelcomeOverlay() {
-    if (slideLoader_ && slideLoader_->IsValid()) {
+    // Don't show overlay if we have a slide loaded (local or remote)
+    if ((slideLoader_ && slideLoader_->IsValid()) ||
+        (remoteSlideSource_ && remoteSlideSource_->IsValid())) {
         return;
     }
 
@@ -897,8 +962,14 @@ void Application::RenderWelcomeOverlay() {
         ImGui::TextWrapped("Load a whole-slide image to explore it with high-resolution zoom and pan.");
         ImGui::Spacing();
 
-        if (ImGui::Button(ICON_FA_FOLDER_OPEN "  Open Slide (Ctrl+O)", ImVec2(-FLT_MIN, 0.0f))) {
+        if (ImGui::Button(ICON_FA_FOLDER_OPEN "  Open Local Slide (Ctrl+O)", ImVec2(-FLT_MIN, 0.0f))) {
             OpenFileDialog();
+        }
+
+        ImGui::Spacing();
+
+        if (ImGui::Button(ICON_FA_SERVER "  Connect to Server...", ImVec2(-FLT_MIN, 0.0f))) {
+            OpenServerConnectionDialog();
         }
 
         ImGui::Spacing();
@@ -2121,4 +2192,92 @@ void Application::CaptureScreenshot() {
 std::vector<uint8_t> Application::EncodePNG(const std::vector<uint8_t>& pixels,
                                             int width, int height) {
     return pathview::PNGEncoder::Encode(pixels, width, height);
+}
+
+void Application::OpenServerConnectionDialog() {
+    if (serverConnectionDialog_) {
+        serverConnectionDialog_->Open();
+    }
+}
+
+void Application::OnServerConnected(std::shared_ptr<pathview::remote::WsiStreamClient> client) {
+    std::cout << "Application: Connected to server " << client->GetServerUrl() << std::endl;
+    remoteClient_ = std::move(client);
+
+    // Open the slide browser dialog
+    if (slideBrowserDialog_ && remoteClient_) {
+        slideBrowserDialog_->Open(remoteClient_);
+    }
+}
+
+void Application::OnRemoteSlideSelected(const std::string& slideId) {
+    std::cout << "Application: Selected remote slide: " << slideId << std::endl;
+    LoadRemoteSlide(slideId);
+}
+
+void Application::LoadRemoteSlide(const std::string& slideId) {
+    if (!remoteClient_ || !remoteClient_->IsConnected()) {
+        std::cerr << "Application: Cannot load remote slide - not connected" << std::endl;
+        return;
+    }
+
+    std::cout << "\n=== Loading Remote Slide ===" << std::endl;
+    std::cout << "Slide ID: " << slideId << std::endl;
+
+    // Clean up previous slide
+    if (previewTexture_) {
+        SDL_DestroyTexture(previewTexture_);
+        previewTexture_ = nullptr;
+    }
+    slideLoader_.reset();
+    slideRenderer_.reset();
+    minimap_.reset();
+
+    // Create remote slide source
+    remoteSlideSource_ = std::make_unique<pathview::remote::RemoteSlideSource>(
+        remoteClient_, slideId);
+
+    if (!remoteSlideSource_->IsValid()) {
+        std::cerr << "Failed to load remote slide: " << remoteSlideSource_->GetError() << std::endl;
+        remoteSlideSource_.reset();
+        return;
+    }
+
+    std::cout << "Remote slide loaded successfully!" << std::endl;
+    currentSlidePath_ = remoteSlideSource_->GetIdentifier();
+
+    // Create viewport for interactive navigation
+    viewport_ = std::make_unique<Viewport>(
+        windowWidth_,
+        windowHeight_,
+        remoteSlideSource_->GetWidth(),
+        remoteSlideSource_->GetHeight()
+    );
+
+    // Create slide renderer with the remote source
+    slideRenderer_ = std::make_unique<SlideRenderer>(
+        remoteSlideSource_.get(),
+        renderer_,
+        textureManager_.get()
+    );
+    slideRenderer_->Initialize();
+
+    // Create minimap with the remote source
+    int minimapHeight = std::max(0, windowHeight_ - static_cast<int>(STATUS_BAR_HEIGHT));
+    minimap_ = std::make_unique<Minimap>(
+        remoteSlideSource_.get(),
+        renderer_,
+        windowWidth_,
+        minimapHeight
+    );
+
+    // Update polygon overlay with slide dimensions
+    if (polygonOverlay_) {
+        polygonOverlay_->SetSlideDimensions(
+            remoteSlideSource_->GetWidth(),
+            remoteSlideSource_->GetHeight()
+        );
+    }
+
+    std::cout << "Remote slide ready for viewing" << std::endl;
 }
