@@ -64,7 +64,7 @@ ConnectionResult WsiStreamClient::Connect(const std::string& serverUrl,
         simdjson::dom::element doc = parser.parse(res->body);
 
         std::string_view status = doc["status"].get_string().value();
-        if (status != "ok") {
+        if (status != "healthy") {
             result.errorMessage = "Server reports unhealthy status: " + std::string(status);
             connected_ = false;
             return result;
@@ -248,6 +248,8 @@ std::optional<SlideInfo> WsiStreamClient::FetchSlideInfo(const std::string& slid
         }
 
         // Parse JSON response
+        // API returns: { slide_id, format, width, height, level_count, levels: [...] }
+        // Each level: { level, width, height, tile_width, tile_height, tiles_x, tiles_y, downsample }
         simdjson::dom::parser parser;
         simdjson::dom::element doc = parser.parse(res->body);
 
@@ -264,32 +266,43 @@ std::optional<SlideInfo> WsiStreamClient::FetchSlideInfo(const std::string& slid
             info.height = height.value();
         }
 
-        auto levels = doc["levels"].get_int64();
-        if (levels.error() == simdjson::SUCCESS) {
-            info.levelCount = static_cast<int32_t>(levels.value());
+        auto levelCount = doc["level_count"].get_int64();
+        if (levelCount.error() == simdjson::SUCCESS) {
+            info.levelCount = static_cast<int32_t>(levelCount.value());
         }
 
-        auto tileSize = doc["tile_size"].get_int64();
-        if (tileSize.error() == simdjson::SUCCESS) {
-            info.tileSize = static_cast<int32_t>(tileSize.value());
-        }
+        // Parse levels array to extract tile_size and downsamples
+        auto levelsArray = doc["levels"].get_array();
+        if (levelsArray.error() == simdjson::SUCCESS) {
+            bool gotTileSize = false;
+            for (auto levelObj : levelsArray.value()) {
+                // Get tile_width from first level (level 0)
+                if (!gotTileSize) {
+                    auto tileWidth = levelObj["tile_width"].get_int64();
+                    if (tileWidth.error() == simdjson::SUCCESS) {
+                        info.tileSize = static_cast<int32_t>(tileWidth.value());
+                        gotTileSize = true;
+                    }
+                }
 
-        // Parse downsamples array if present
-        auto downsamples = doc["downsamples"].get_array();
-        if (downsamples.error() == simdjson::SUCCESS) {
-            for (auto ds : downsamples.value()) {
-                auto val = ds.get_double();
-                if (val.error() == simdjson::SUCCESS) {
-                    info.downsamples.push_back(val.value());
+                // Get downsample for each level
+                auto downsample = levelObj["downsample"].get_double();
+                if (downsample.error() == simdjson::SUCCESS) {
+                    info.downsamples.push_back(downsample.value());
                 }
             }
         }
 
-        // If downsamples not provided, generate standard pyramid (2x per level)
+        // Fallback: if downsamples not extracted, generate standard pyramid (2x per level)
         if (info.downsamples.empty() && info.levelCount > 0) {
             for (int32_t i = 0; i < info.levelCount; ++i) {
                 info.downsamples.push_back(std::pow(2.0, i));
             }
+        }
+
+        // Fallback: default tile size if not found
+        if (info.tileSize == 0) {
+            info.tileSize = 256;  // Common default
         }
 
         std::cout << "WsiStreamClient: Fetched slide info for " << slideId

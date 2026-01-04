@@ -35,8 +35,9 @@ public:
     int32_t GetTileSize() const { return info_.tileSize; }
 
 private:
-    // Fetch and decode a single tile
-    uint32_t* FetchAndDecodeTile(int32_t level, int32_t tileX, int32_t tileY);
+    // Fetch and decode a single tile, returns actual decoded dimensions
+    uint32_t* FetchAndDecodeTile(int32_t level, int32_t tileX, int32_t tileY,
+                                  int& outWidth, int& outHeight);
 
     // Decode JPEG to RGBA pixels
     uint32_t* DecodeJpeg(const std::vector<uint8_t>& jpegData,
