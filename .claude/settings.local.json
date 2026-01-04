@@ -44,7 +44,9 @@
       "Bash(.venv/bin/python:*)",
       "Bash(vcpkg help:*)",
       "Bash(vcpkg version:*)",
-      "Bash(./build/test/unit_tests:*)"
+      "Bash(./build/test/unit_tests:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:openslide.org)"
     ],
     "deny": [],
     "ask": []
