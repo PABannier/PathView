@@ -1,5 +1,6 @@
 #include "SlideRenderer.h"
-#include "SlideLoader.h"
+#include "ISlideSource.h"
+#include "SlideLoader.h"  // For LevelDimensions
 #include "Viewport.h"
 #include "TextureManager.h"
 #include "TileCache.h"
@@ -11,8 +12,8 @@
 
 static const int32_t NUM_WORKER_THREADS = 4;
 
-SlideRenderer::SlideRenderer(SlideLoader* loader, SDL_Renderer* renderer, TextureManager* textureManager)
-    : loader_(loader)
+SlideRenderer::SlideRenderer(ISlideSource* source, SDL_Renderer* renderer, TextureManager* textureManager)
+    : source_(source)
     , renderer_(renderer)
     , textureManager_(textureManager)
     , tileCache_(std::make_unique<TileCache>())
@@ -26,7 +27,7 @@ SlideRenderer::~SlideRenderer() {
 void SlideRenderer::Initialize() {
     if (!threadPool_) {
         threadPool_ = std::make_unique<TileLoadThreadPool>(NUM_WORKER_THREADS);
-        threadPool_->Initialize(loader_, tileCache_.get(),
+        threadPool_->Initialize(source_, tileCache_.get(),
             [this](const TileKey& key) { OnTileReady(key); });
         threadPool_->Start();
         std::cout << "SlideRenderer: Async tile loading initialized" << std::endl;
@@ -42,7 +43,7 @@ void SlideRenderer::Shutdown() {
 }
 
 void SlideRenderer::Render(const Viewport& viewport) {
-    if (!loader_ || !loader_->IsValid()) {
+    if (!source_ || !source_->IsValid()) {
         return;
     }
 
@@ -84,17 +85,17 @@ int32_t SlideRenderer::SelectLevel(double zoom) const {
     // At 25% zoom (0.25), we want a level with downsample ~4
 
     double targetDownsample = 1.0 / zoom;
-    int32_t levelCount = loader_->GetLevelCount();
+    int32_t levelCount = source_->GetLevelCount();
 
     int32_t bestLevel = 0;
-    double bestDiff = std::abs(loader_->GetLevelDownsample(0) - targetDownsample);
+    double bestDiff = std::abs(source_->GetLevelDownsample(0) - targetDownsample);
 
     for (int32_t i = 1; i < levelCount; ++i) {
-        double downsample = loader_->GetLevelDownsample(i);
+        double downsample = source_->GetLevelDownsample(i);
         double diff = std::abs(downsample - targetDownsample);
 
         // Prefer higher resolution when between two levels to avoid pixelation
-        if (diff < bestDiff || (diff == bestDiff && downsample < loader_->GetLevelDownsample(bestLevel))) {
+        if (diff < bestDiff || (diff == bestDiff && downsample < source_->GetLevelDownsample(bestLevel))) {
             bestDiff = diff;
             bestLevel = i;
         }
@@ -120,7 +121,7 @@ std::vector<TileKey> SlideRenderer::EnumerateVisibleTiles(const Viewport& viewpo
     Rect visibleRegion = viewport.GetVisibleRegion();
 
     // Get downsample factor for this level
-    double downsample = loader_->GetLevelDownsample(level);
+    double downsample = source_->GetLevelDownsample(level);
 
     // Convert visible region to level coordinates
     int64_t levelLeft = static_cast<int64_t>(visibleRegion.x / downsample);
@@ -129,7 +130,7 @@ std::vector<TileKey> SlideRenderer::EnumerateVisibleTiles(const Viewport& viewpo
     int64_t levelBottom = static_cast<int64_t>((visibleRegion.y + visibleRegion.height) / downsample);
 
     // Get level dimensions
-    auto levelDims = loader_->GetLevelDimensions(level);
+    auto levelDims = source_->GetLevelDimensions(level);
 
     // Clamp to level bounds
     levelLeft = std::max<int64_t>(0, levelLeft);
@@ -190,11 +191,11 @@ void SlideRenderer::LoadAndRenderTile(const TileKey& key, const Viewport& viewpo
 
 const TileData* SlideRenderer::FindBestFallback(const TileKey& key, TileKey* outFallbackKey) {
     // Search from next coarser level down to lowest resolution
-    int32_t levelCount = loader_->GetLevelCount();
-    double targetDownsample = loader_->GetLevelDownsample(key.level);
+    int32_t levelCount = source_->GetLevelCount();
+    double targetDownsample = source_->GetLevelDownsample(key.level);
 
     for (int32_t l = key.level + 1; l < levelCount; ++l) {
-        double fallbackDownsample = loader_->GetLevelDownsample(l);
+        double fallbackDownsample = source_->GetLevelDownsample(l);
         double ratio = fallbackDownsample / targetDownsample;
 
         // Calculate equivalent tile position at coarser level
@@ -219,8 +220,8 @@ void SlideRenderer::RenderFallbackTile(const TileKey& targetKey, const TileKey& 
     // We have a coarser tile and need to render a portion of it scaled up
     // to cover where the target high-res tile would be
 
-    double targetDownsample = loader_->GetLevelDownsample(targetLevel);
-    double fallbackDownsample = loader_->GetLevelDownsample(fallbackKey.level);
+    double targetDownsample = source_->GetLevelDownsample(targetLevel);
+    double fallbackDownsample = source_->GetLevelDownsample(fallbackKey.level);
 
     // Calculate the target tile's position in slide coordinates (level 0)
     double targetX0 = targetKey.tileX * TILE_SIZE * targetDownsample;
@@ -298,7 +299,7 @@ void SlideRenderer::RenderTileToScreen(const TileKey& key, const TileData* tileD
     }
 
     // Calculate tile position in slide coordinates (level 0)
-    double downsample = loader_->GetLevelDownsample(level);
+    double downsample = source_->GetLevelDownsample(level);
     double tileX0 = key.tileX * TILE_SIZE * downsample;
     double tileY0 = key.tileY * TILE_SIZE * downsample;
     double tileX1 = tileX0 + tileData->width * downsample;

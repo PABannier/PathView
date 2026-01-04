@@ -7,7 +7,7 @@
 #include <set>
 #include <mutex>
 
-class SlideLoader;
+class ISlideSource;
 class Viewport;
 class TextureManager;
 class TileCache;
@@ -17,7 +17,7 @@ struct TileData;
 
 class SlideRenderer {
 public:
-    SlideRenderer(SlideLoader* loader, SDL_Renderer* renderer, TextureManager* textureManager);
+    SlideRenderer(ISlideSource* source, SDL_Renderer* renderer, TextureManager* textureManager);
     ~SlideRenderer();
 
     // Lifecycle management for async loading
@@ -52,7 +52,7 @@ private:
     // Callback when background thread finishes loading a tile
     void OnTileReady(const TileKey& key);
 
-    SlideLoader* loader_;
+    ISlideSource* source_;
     SDL_Renderer* renderer_;
     TextureManager* textureManager_;
     std::unique_ptr<TileCache> tileCache_;
