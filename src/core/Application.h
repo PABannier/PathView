@@ -108,6 +108,7 @@ private:
     void RenderActionCardsTab();
     void RenderNavigationLockIndicator();
     void ClearSlideState();
+    void UpdateViewportRect();
 
     // Navigation lock helpers
     bool IsNavigationLocked() const;

@@ -536,6 +536,7 @@ void Application::Render() {
 }
 
 void Application::RenderUI() {
+    UpdateViewportRect();
     RenderMenuBar();
     RenderToolbar();
     RenderSidebar();
@@ -553,6 +554,27 @@ void Application::RenderUI() {
     if (IsNavigationLocked()) {
         RenderNavigationLockIndicator();
     }
+}
+
+void Application::UpdateViewportRect() {
+    if (!viewport_) {
+        return;
+    }
+
+    float menuBarHeight = ImGui::GetFrameHeight();
+    int offsetX = 0;
+    int offsetY = static_cast<int>(menuBarHeight + TOOLBAR_HEIGHT);
+    int width = windowWidth_ - (sidebarVisible_ ? static_cast<int>(SIDEBAR_WIDTH) : 0);
+    int height = windowHeight_ - offsetY;
+
+    if (width < 1) {
+        width = 1;
+    }
+    if (height < 1) {
+        height = 1;
+    }
+
+    viewport_->SetViewportRect(offsetX, offsetY, width, height);
 }
 
 void Application::OpenFileDialog() {
@@ -1314,7 +1336,9 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             double delta = params.at("delta").get<double>();
 
             // Zoom at center of viewport
-            Vec2 center(windowWidth_ / 2.0, windowHeight_ / 2.0);
+            double centerX = viewport_->GetViewportOffsetX() + viewport_->GetWindowWidth() / 2.0;
+            double centerY = viewport_->GetViewportOffsetY() + viewport_->GetWindowHeight() / 2.0;
+            Vec2 center(centerX, centerY);
             viewport_->ZoomAtPoint(center, delta, AnimationMode::SMOOTH);
 
             return json{
@@ -1437,8 +1461,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             }
 
             // Calculate target position (center to top-left)
-            double viewportWidth = windowWidth_ / zoom;
-            double viewportHeight = windowHeight_ / zoom;
+            double viewportWidth = viewport_->GetWindowWidth() / zoom;
+            double viewportHeight = viewport_->GetWindowHeight() / zoom;
             Vec2 targetPos(centerX - viewportWidth / 2.0,
                            centerY - viewportHeight / 2.0);
 

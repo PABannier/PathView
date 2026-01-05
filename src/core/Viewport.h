@@ -37,6 +37,9 @@ public:
     void SetWindowSize(int width, int height);
     int GetWindowWidth() const { return windowWidth_; }
     int GetWindowHeight() const { return windowHeight_; }
+    void SetViewportRect(int x, int y, int width, int height);
+    int GetViewportOffsetX() const { return viewportOffsetX_; }
+    int GetViewportOffsetY() const { return viewportOffsetY_; }
 
     // Slide dimensions
     void SetSlideDimensions(int64_t width, int64_t height);
@@ -75,6 +78,8 @@ private:
     // Window dimensions
     int windowWidth_;
     int windowHeight_;
+    int viewportOffsetX_;
+    int viewportOffsetY_;
 
     // Slide dimensions
     int64_t slideWidth_;

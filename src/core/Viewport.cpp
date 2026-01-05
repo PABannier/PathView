@@ -6,6 +6,8 @@
 Viewport::Viewport(int windowWidth, int windowHeight, int64_t slideWidth, int64_t slideHeight)
     : windowWidth_(windowWidth)
     , windowHeight_(windowHeight)
+    , viewportOffsetX_(0)
+    , viewportOffsetY_(0)
     , slideWidth_(slideWidth)
     , slideHeight_(slideHeight)
     , position_(0.0, 0.0)
@@ -18,8 +20,18 @@ Viewport::Viewport(int windowWidth, int windowHeight, int64_t slideWidth, int64_
 }
 
 void Viewport::SetWindowSize(int width, int height) {
-    windowWidth_ = width;
-    windowHeight_ = height;
+    windowWidth_ = std::max(1, width);
+    windowHeight_ = std::max(1, height);
+    CalculateZoomLimits();
+    zoom_ = std::clamp(zoom_, minZoom_, maxZoom_);
+    ClampToBounds();
+}
+
+void Viewport::SetViewportRect(int x, int y, int width, int height) {
+    viewportOffsetX_ = x;
+    viewportOffsetY_ = y;
+    windowWidth_ = std::max(1, width);
+    windowHeight_ = std::max(1, height);
     CalculateZoomLimits();
     zoom_ = std::clamp(zoom_, minZoom_, maxZoom_);
     ClampToBounds();
@@ -46,7 +58,11 @@ void Viewport::ZoomAtPoint(Vec2 screenPoint, double zoomDelta, AnimationMode mod
     }
 
     // Calculate target position so slidePoint remains under screenPoint
-    Vec2 targetPos = slidePoint - screenPoint / targetZoom;
+    Vec2 localScreenPoint(
+        screenPoint.x - viewportOffsetX_,
+        screenPoint.y - viewportOffsetY_
+    );
+    Vec2 targetPos = slidePoint - localScreenPoint / targetZoom;
 
     // Pre-clamp target position
     Vec2 savedPos = position_;
@@ -126,17 +142,21 @@ void Viewport::ResetView(AnimationMode mode) {
 
 Vec2 Viewport::ScreenToSlide(Vec2 screenPos) const {
     // Screen coordinates → Slide coordinates
+    Vec2 localScreenPos(
+        screenPos.x - viewportOffsetX_,
+        screenPos.y - viewportOffsetY_
+    );
     return Vec2(
-        screenPos.x / zoom_ + position_.x,
-        screenPos.y / zoom_ + position_.y
+        localScreenPos.x / zoom_ + position_.x,
+        localScreenPos.y / zoom_ + position_.y
     );
 }
 
 Vec2 Viewport::SlideToScreen(Vec2 slidePos) const {
     // Slide coordinates → Screen coordinates
     return Vec2(
-        (slidePos.x - position_.x) * zoom_,
-        (slidePos.y - position_.y) * zoom_
+        (slidePos.x - position_.x) * zoom_ + viewportOffsetX_,
+        (slidePos.y - position_.y) * zoom_ + viewportOffsetY_
     );
 }
 
@@ -186,12 +206,9 @@ void Viewport::CalculateZoomLimits() {
     double zoomX = static_cast<double>(windowWidth_) / slideWidth_;
     double zoomY = static_cast<double>(windowHeight_) / slideHeight_;
     minZoom_ = std::min(zoomX, zoomY) * 0.95; // 95% to add small margin
-    minZoom_ = std::max(minZoom_, 0.01);
 
     // Maximum zoom: 4x magnification or larger if slide is smaller than the window
     maxZoom_ = std::max(4.0, minZoom_);
-
-    std::cout << "Viewport zoom limits: " << minZoom_ << " - " << maxZoom_ << std::endl;
 }
 
 void Viewport::UpdateAnimation(double currentTimeMs) {
