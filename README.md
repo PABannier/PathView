@@ -9,6 +9,7 @@ PathView is a whole-slide image (WSI) viewer for digital pathology. It combines 
 ## Features
 
 - Smooth pan/zoom WSI viewing with multiresolution tile loading
+- Remote slide streaming from S3-compatible storage
 - Overview minimap with click-to-jump navigation
 - Polygon overlay rendering with class-based styling (protobuf)
 - Cross-platform support: macOS, Linux
@@ -53,6 +54,41 @@ cmake --build build -j$(nproc)
 - Pan: left mouse drag
 - Reset view: `View -> Reset View`
 - Use the minimap to jump to a region
+
+## Remote Slides (S3)
+
+PathView can stream slides from S3-compatible storage via [WSIStreamer](https://github.com/PABannier/WSIStreamer), a high-performance tile server. This enables viewing large slides without downloading them locally.
+
+### Quick Demo
+
+```bash
+# Requires Docker, docker-compose, and MinIO client (mc)
+./scripts/demo_remote_slide.sh ~/Downloads/sample.svs
+```
+
+This spins up a local WSIStreamer instance, uploads your slide, and launches PathView.
+
+### Connecting to a Server
+
+1. `File -> Connect to Server` or `Ctrl+Shift+O`
+2. Enter the server URL (e.g., `http://localhost:3000`)
+3. Enter auth secret if required
+4. Browse available slides and select one to open
+
+### Production Setup
+
+For production deployments, WSIStreamer connects to AWS S3 or any S3-compatible storage (MinIO, GCS, etc.):
+
+```bash
+# Run WSIStreamer pointing to your S3 bucket
+docker run -p 3000:3000 \
+  -e WSI_S3_BUCKET=my-slides-bucket \
+  -e AWS_ACCESS_KEY_ID=... \
+  -e AWS_SECRET_ACCESS_KEY=... \
+  wsistreamer/wsi-streamer
+```
+
+See the [WSIStreamer documentation](external/WSIStreamer/README.md) for configuration options including authentication, caching, and CORS.
 
 ## AI Agent Integration
 
