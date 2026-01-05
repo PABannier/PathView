@@ -20,6 +20,7 @@
     #define INVALID_SOCKET_VALUE (-1)
 #endif
 
+class ISlideSource;
 class SlideLoader;
 class SlideRenderer;
 class Minimap;
@@ -32,6 +33,18 @@ struct ImFont;
 
 namespace pathview {
 class ScreenshotBuffer;
+}
+
+// Forward declare remote types
+namespace pathview {
+namespace remote {
+    class WsiStreamClient;
+    class RemoteSlideSource;
+}
+namespace ui {
+    class ServerConnectionDialog;
+    class SlideBrowserDialog;
+}
 }
 
 // Forward declare IPC types
@@ -74,7 +87,13 @@ private:
     void OpenFileDialog();
     void LoadSlide(const std::string& path);
     void OpenPolygonFileDialog();
-    void LoadPolygons(const std::string& path);
+    bool LoadPolygons(const std::string& path);
+
+    // Remote slide handling
+    void OpenServerConnectionDialog();
+    void LoadRemoteSlide(const std::string& slideId);
+    void OnServerConnected(std::shared_ptr<pathview::remote::WsiStreamClient> client);
+    void OnRemoteSlideSelected(const std::string& slideId);
 
     // IPC command handler
     pathview::ipc::json HandleIPCCommand(const std::string& method, const pathview::ipc::json& params);
@@ -88,6 +107,8 @@ private:
     void RenderPolygonTab();
     void RenderActionCardsTab();
     void RenderNavigationLockIndicator();
+    void ClearSlideState();
+    void UpdateViewportRect();
 
     // Navigation lock helpers
     bool IsNavigationLocked() const;
@@ -156,6 +177,12 @@ private:
 
     // Screenshot capture state
     std::unique_ptr<pathview::ScreenshotBuffer> screenshotBuffer_;
+
+    // Remote slide streaming
+    std::shared_ptr<pathview::remote::WsiStreamClient> remoteClient_;
+    std::unique_ptr<pathview::remote::RemoteSlideSource> remoteSlideSource_;
+    std::unique_ptr<pathview::ui::ServerConnectionDialog> serverConnectionDialog_;
+    std::unique_ptr<pathview::ui::SlideBrowserDialog> slideBrowserDialog_;
 
     // Toolbar configuration
     static constexpr float TOOLBAR_HEIGHT = 40.0f;

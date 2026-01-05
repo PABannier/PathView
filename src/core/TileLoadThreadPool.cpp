@@ -1,5 +1,7 @@
 #include "TileLoadThreadPool.h"
-#include "SlideLoader.h"
+#include "ISlideSource.h"
+#include "SlideLoader.h"  // For LevelDimensions
+#include "TileConstants.h"
 #include <iostream>
 
 TileLoadThreadPool::TileLoadThreadPool(size_t numThreads)
@@ -11,8 +13,8 @@ TileLoadThreadPool::~TileLoadThreadPool() {
     Stop();
 }
 
-void TileLoadThreadPool::Initialize(SlideLoader* loader, TileCache* cache, TileReadyCallback onTileReady) {
-    loader_ = loader;
+void TileLoadThreadPool::Initialize(ISlideSource* source, TileCache* cache, TileReadyCallback onTileReady) {
+    source_ = source;
     cache_ = cache;
     onTileReady_ = std::move(onTileReady);
 }
@@ -22,8 +24,8 @@ void TileLoadThreadPool::Start() {
         return;  // Already running
     }
 
-    if (!loader_ || !cache_) {
-        std::cerr << "TileLoadThreadPool: Cannot start without loader and cache" << std::endl;
+    if (!source_ || !cache_) {
+        std::cerr << "TileLoadThreadPool: Cannot start without source and cache" << std::endl;
         return;
     }
 
@@ -183,7 +185,7 @@ bool TileLoadThreadPool::PopNextRequest(TileLoadRequest& outRequest) {
 }
 
 void TileLoadThreadPool::ProcessRequest(const TileLoadRequest& request) {
-    if (!loader_ || !cache_) {
+    if (!source_ || !cache_) {
         return;
     }
 
@@ -195,28 +197,28 @@ void TileLoadThreadPool::ProcessRequest(const TileLoadRequest& request) {
         return;
     }
 
-    // Load tile from slide
+    // Load tile from slide source
     const TileKey& key = request.key;
-    double downsample = loader_->GetLevelDownsample(key.level);
+    double downsample = source_->GetLevelDownsample(key.level);
 
     // Calculate tile position in level 0 coordinates
-    int64_t x0 = static_cast<int64_t>(key.tileX * 512 * downsample);  // TILE_SIZE = 512
-    int64_t y0 = static_cast<int64_t>(key.tileY * 512 * downsample);
+    int64_t x0 = static_cast<int64_t>(key.tileX) * pathview::kTileSize * downsample;
+    int64_t y0 = static_cast<int64_t>(key.tileY) * pathview::kTileSize * downsample;
 
     // Calculate tile dimensions at this level
-    auto levelDims = loader_->GetLevelDimensions(key.level);
-    int64_t levelX = key.tileX * 512;
-    int64_t levelY = key.tileY * 512;
+    auto levelDims = source_->GetLevelDimensions(key.level);
+    int64_t levelX = static_cast<int64_t>(key.tileX) * pathview::kTileSize;
+    int64_t levelY = static_cast<int64_t>(key.tileY) * pathview::kTileSize;
 
-    int64_t tileWidth = std::min(static_cast<int64_t>(512), levelDims.width - levelX);
-    int64_t tileHeight = std::min(static_cast<int64_t>(512), levelDims.height - levelY);
+    int64_t tileWidth = std::min(static_cast<int64_t>(pathview::kTileSize), levelDims.width - levelX);
+    int64_t tileHeight = std::min(static_cast<int64_t>(pathview::kTileSize), levelDims.height - levelY);
 
     if (tileWidth <= 0 || tileHeight <= 0) {
         return;
     }
 
-    // Read tile from slide (this is the blocking I/O that we moved off the render thread!)
-    uint32_t* pixels = loader_->ReadRegion(key.level, x0, y0, tileWidth, tileHeight);
+    // Read tile from source (this is the blocking I/O that we moved off the render thread!)
+    uint32_t* pixels = source_->ReadRegion(key.level, x0, y0, tileWidth, tileHeight);
     if (!pixels) {
         return;
     }

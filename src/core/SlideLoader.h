@@ -1,8 +1,10 @@
 #pragma once
 
+#include "ISlideSource.h"
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <cstddef>
 #include <openslide/openslide.h>
 
 struct LevelDimensions {
@@ -10,10 +12,10 @@ struct LevelDimensions {
     int64_t height;
 };
 
-class SlideLoader {
+class SlideLoader : public ISlideSource {
 public:
     explicit SlideLoader(const std::string& path);
-    ~SlideLoader();
+    ~SlideLoader() override;
 
     // Delete copy, allow move
     SlideLoader(const SlideLoader&) = delete;
@@ -21,27 +23,24 @@ public:
     SlideLoader(SlideLoader&& other) noexcept;
     SlideLoader& operator=(SlideLoader&& other) noexcept;
 
-    // Query slide properties
-    bool IsValid() const;
-    const std::string& GetError() const;
-    int32_t GetLevelCount() const;
-    LevelDimensions GetLevelDimensions(int32_t level) const;
-    double GetLevelDownsample(int32_t level) const;
+    // ISlideSource interface implementation
+    bool IsValid() const override;
+    const std::string& GetError() const override;
+    int32_t GetLevelCount() const override;
+    LevelDimensions GetLevelDimensions(int32_t level) const override;
+    double GetLevelDownsample(int32_t level) const override;
+    int64_t GetWidth() const override;
+    int64_t GetHeight() const override;
+    uint32_t* ReadRegion(int32_t level, int64_t x, int64_t y,
+                         int64_t width, int64_t height) override;
+    std::string GetIdentifier() const override { return path_; }
+    bool IsRemote() const override { return false; }
 
-    // Get level 0 dimensions (full resolution)
-    int64_t GetWidth() const;
-    int64_t GetHeight() const;
-
-    // Read a region from the slide
-    // Returns RGBA pixel data (caller must delete[])
-    // x, y are in level 0 coordinates
-    uint32_t* ReadRegion(int32_t level, int64_t x, int64_t y, int64_t width, int64_t height);
-
-    // Get slide path
+    // Get slide path (legacy accessor)
     const std::string& GetPath() const { return path_; }
 
 private:
-    void ConvertARGBtoRGBA(uint32_t* pixels, int64_t count);
+    void ConvertARGBtoRGBA(uint32_t* pixels, size_t count);
     void CheckError();
 
     openslide_t* slide_;

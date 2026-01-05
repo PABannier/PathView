@@ -1,3 +1,6 @@
 [submodule "external/cpp-mcp"]
 	path = external/cpp-mcp
 	url = https://github.com/hkr04/cpp-mcp.git
+[submodule "external/WSIStreamer"]
+	path = external/WSIStreamer
+	url = https://github.com/PABannier/WSIStreamer

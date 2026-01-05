@@ -27,7 +27,8 @@ private:
      */
     static bool IsEar(const std::vector<Vec2>& vertices,
                      const std::vector<int>& indices,
-                     int i);
+                     int i,
+                     bool isCCW);
 
     /**
      * Check if three points form a convex angle (turn right)
@@ -36,7 +37,7 @@ private:
      * @param c Third point
      * @return true if angle is convex (< 180 degrees)
      */
-    static bool IsConvex(const Vec2& a, const Vec2& b, const Vec2& c);
+    static bool IsConvex(const Vec2& a, const Vec2& b, const Vec2& c, bool isCCW);
 
     /**
      * Check if a point is inside a triangle

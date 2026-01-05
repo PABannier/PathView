@@ -1,11 +1,12 @@
 #include "Minimap.h"
-#include "SlideLoader.h"
+#include "ISlideSource.h"
+#include "SlideLoader.h"  // For LevelDimensions
 #include "Viewport.h"
 #include <iostream>
 #include <algorithm>
 
-Minimap::Minimap(SlideLoader* loader, SDL_Renderer* renderer, int windowWidth, int windowHeight)
-    : loader_(loader)
+Minimap::Minimap(ISlideSource* source, SDL_Renderer* renderer, int windowWidth, int windowHeight)
+    : source_(source)
     , renderer_(renderer)
     , overviewTexture_(nullptr)
     , overviewWidth_(0)
@@ -25,20 +26,24 @@ Minimap::~Minimap() {
 }
 
 void Minimap::Initialize() {
-    if (!loader_ || !loader_->IsValid()) {
-        std::cerr << "Minimap: Invalid slide loader" << std::endl;
+    if (!source_ || !source_->IsValid()) {
+        std::cerr << "Minimap: Invalid slide source" << std::endl;
         return;
     }
 
     // Use the lowest resolution level for overview
-    int32_t lowestLevel = loader_->GetLevelCount() - 1;
-    auto dims = loader_->GetLevelDimensions(lowestLevel);
+    if (source_->GetLevelCount() <= 0) {
+        std::cerr << "Minimap: No levels available" << std::endl;
+        return;
+    }
+    int32_t lowestLevel = source_->GetLevelCount() - 1;
+    auto dims = source_->GetLevelDimensions(lowestLevel);
 
     std::cout << "Minimap: Loading overview from level " << lowestLevel
               << " (" << dims.width << "x" << dims.height << ")" << std::endl;
 
     // Read the entire level (it's small enough to fit in memory)
-    uint32_t* pixels = loader_->ReadRegion(lowestLevel, 0, 0, dims.width, dims.height);
+    uint32_t* pixels = source_->ReadRegion(lowestLevel, 0, 0, dims.width, dims.height);
 
     if (!pixels) {
         std::cerr << "Minimap: Failed to read overview region" << std::endl;
@@ -181,8 +186,11 @@ SDL_Rect Minimap::CalculateViewportRect(const Viewport& viewport) const {
     Rect visibleRegion = viewport.GetVisibleRegion();
 
     // Get slide dimensions
-    int64_t slideWidth = loader_->GetWidth();
-    int64_t slideHeight = loader_->GetHeight();
+    int64_t slideWidth = source_->GetWidth();
+    int64_t slideHeight = source_->GetHeight();
+    if (slideWidth <= 0 || slideHeight <= 0) {
+        return {minimapRect_.x, minimapRect_.y, 0, 0};
+    }
 
     // Calculate viewport position and size as fractions of slide
     double leftFrac = visibleRegion.x / slideWidth;
@@ -222,8 +230,11 @@ void Minimap::HandleClick(int x, int y, Viewport& viewport) {
     double fracY = static_cast<double>(localY) / minimapRect_.h;
 
     // Convert to slide coordinates
-    int64_t slideWidth = loader_->GetWidth();
-    int64_t slideHeight = loader_->GetHeight();
+    int64_t slideWidth = source_->GetWidth();
+    int64_t slideHeight = source_->GetHeight();
+    if (slideWidth <= 0 || slideHeight <= 0) {
+        return;
+    }
 
     double slideX = fracX * slideWidth;
     double slideY = fracY * slideHeight;

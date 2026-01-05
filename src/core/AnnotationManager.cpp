@@ -635,3 +635,11 @@ void AnnotationManager::StartRenaming(int index) {
         showRenameDialog_ = true;
     }
 }
+
+void AnnotationManager::ClearAnnotations() {
+    annotations_.clear();
+    drawingState_.Clear();
+    nextAnnotationId_ = 1;
+    showRenameDialog_ = false;
+    renamingAnnotationIndex_ = -1;
+}

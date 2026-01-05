@@ -78,8 +78,8 @@ public:
     void Clear();
 
     // Cache statistics
-    size_t GetTileCount() const { return cache_.size(); }
-    size_t GetMemoryUsage() const { return currentMemoryUsage_; }
+    size_t GetTileCount() const;
+    size_t GetMemoryUsage() const;
     size_t GetMaxMemory() const { return maxMemoryBytes_; }
     size_t GetHitCount() const { return hitCount_; }
     size_t GetMissCount() const { return missCount_; }

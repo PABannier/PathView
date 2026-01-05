@@ -58,6 +58,7 @@ public:
     void StartRenaming(int index);
     const std::vector<AnnotationPolygon>& GetAnnotations() const { return annotations_; }
     int GetAnnotationCount() const { return static_cast<int>(annotations_.size()); }
+    void ClearAnnotations();
 
     // Cell counting
     void ComputeCellCounts(AnnotationPolygon& annotation, PolygonOverlay* polygonOverlay);

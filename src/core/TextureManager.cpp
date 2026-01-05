@@ -1,4 +1,5 @@
 #include "TextureManager.h"
+#include "TileCache.h"
 #include <iostream>
 #include <sstream>
 
@@ -28,6 +29,10 @@ SDL_Texture* TextureManager::CreateTexture(const uint32_t* pixels, int32_t width
 
     if (!pixels) {
         std::cerr << "TextureManager: pixel data is null" << std::endl;
+        return nullptr;
+    }
+    if (width <= 0 || height <= 0) {
+        std::cerr << "TextureManager: invalid texture size " << width << "x" << height << std::endl;
         return nullptr;
     }
 
@@ -98,4 +103,17 @@ void TextureManager::ClearCache() {
         }
     }
     textureCache_.clear();
+}
+
+void TextureManager::PruneCache(const TileCache& tileCache) {
+    for (auto it = textureCache_.begin(); it != textureCache_.end(); ) {
+        if (!tileCache.HasTile(it->first)) {
+            if (it->second) {
+                SDL_DestroyTexture(it->second);
+            }
+            it = textureCache_.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }

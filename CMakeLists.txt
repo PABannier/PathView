@@ -58,6 +58,9 @@ find_package(simdjson CONFIG REQUIRED)
 # Find PNG
 find_package(PNG REQUIRED)
 
+# Find OpenSSL (for HMAC-SHA256 URL signing)
+find_package(OpenSSL REQUIRED)
+
 # Find UUID library (platform-specific)
 if(WIN32)
     # Windows: No external UUID library needed - using built-in implementation
@@ -148,6 +151,11 @@ set(APP_SOURCES
     src/core/ScreenshotBuffer.cpp
     src/loaders/ProtobufPolygonLoader.cpp
     src/loaders/JSONPolygonLoader.cpp
+    src/remote/UrlSigner.cpp
+    src/remote/WsiStreamClient.cpp
+    src/remote/RemoteSlideSource.cpp
+    src/ui/ServerConnectionDialog.cpp
+    src/ui/SlideBrowserDialog.cpp
     protobuf/cell_polygons.pb.cc
 )
 
@@ -158,8 +166,11 @@ add_executable(pathview ${APP_SOURCES} ${IMGUI_SOURCES})
 target_include_directories(pathview PRIVATE
     ${CMAKE_SOURCE_DIR}/src/core
     ${CMAKE_SOURCE_DIR}/src/loaders
+    ${CMAKE_SOURCE_DIR}/src/remote
+    ${CMAKE_SOURCE_DIR}/src/ui
     ${CMAKE_SOURCE_DIR}/protobuf
     ${CMAKE_SOURCE_DIR}/resources/fonts
+    ${CMAKE_SOURCE_DIR}/external/cpp-mcp/common
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
 )
@@ -210,6 +221,8 @@ target_link_libraries(pathview PRIVATE
     absl::hash
     PNG::PNG
     simdjson::simdjson
+    OpenSSL::SSL
+    OpenSSL::Crypto
     Threads::Threads
 )
 

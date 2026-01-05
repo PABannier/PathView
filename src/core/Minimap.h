@@ -3,13 +3,13 @@
 #include <SDL2/SDL.h>
 #include <cstdint>
 
-class SlideLoader;
+class ISlideSource;
 class Viewport;
 struct Rect;
 
 class Minimap {
 public:
-    Minimap(SlideLoader* loader, SDL_Renderer* renderer, int windowWidth, int windowHeight);
+    Minimap(ISlideSource* source, SDL_Renderer* renderer, int windowWidth, int windowHeight);
     ~Minimap();
 
     void Render(const Viewport& viewport, bool sidebarVisible = false, float sidebarWidth = 0.0f);
@@ -22,7 +22,7 @@ private:
     void CalculateMinimapRect();
     SDL_Rect CalculateViewportRect(const Viewport& viewport) const;
 
-    SlideLoader* loader_;
+    ISlideSource* source_;
     SDL_Renderer* renderer_;
 
     SDL_Texture* overviewTexture_;

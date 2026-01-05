@@ -243,6 +243,7 @@ void IPCServer::Stop() {
         CloseSocket(fd);
     }
     clients_.clear();
+    recvBuffers_.clear();
 
     // Close server socket
     CloseSocket(serverFd_);
@@ -337,6 +338,7 @@ void IPCServer::AcceptConnections() {
     }
 
     clients_.push_back(clientFd);
+    recvBuffers_.emplace(clientFd, std::string{});
     std::cout << "New IPC client connected (fd=" << clientFd << ")" << std::endl;
 }
 
@@ -364,51 +366,77 @@ void IPCServer::HandleClient(socket_t clientFd) {
         return;
     }
 
-    buffer[n] = '\0';
+    auto& recvBuffer = recvBuffers_[clientFd];
+    recvBuffer.append(buffer, static_cast<size_t>(n));
 
-    try {
-        // Parse JSON-RPC request
-        json requestJson = json::parse(buffer);
-        IPCRequest request = IPCRequest::FromJson(requestJson);
+    // Guard against unbounded growth if no newline is received.
+    if (recvBuffer.size() > BUFFER_SIZE * 16) {
+        std::cerr << "IPC receive buffer exceeded limit, closing client (fd="
+                  << clientFd << ")" << std::endl;
+        RemoveClient(clientFd);
+        return;
+    }
 
-        // Set current client FD for handler
-        currentClientFd_ = clientFd;
+    size_t newlinePos = 0;
+    while ((newlinePos = recvBuffer.find('\n')) != std::string::npos) {
+        std::string line = recvBuffer.substr(0, newlinePos);
+        recvBuffer.erase(0, newlinePos + 1);
 
-        // Handle request
-        IPCResponse response = HandleRequest(request);
-
-        // Clear current client FD
-        currentClientFd_ = INVALID_SOCKET_VALUE;
-
-        // Send response
-        std::string responseStr = response.ToJson().dump();
-        responseStr += "\n";  // Add newline delimiter
-
-        if (!SendAll(clientFd, responseStr, 5000)) {
-            std::cerr << "Failed to send response: " << GetLastErrorString() << std::endl;
-            RemoveClient(clientFd);
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
         }
-    } catch (const json::exception& e) {
-        std::cerr << "JSON parse error: " << e.what() << std::endl;
+        if (line.empty()) {
+            continue;
+        }
 
-        // Send error response
-        IPCResponse errorResponse;
-        errorResponse.id = 0;  // Unknown ID
-        errorResponse.error = IPCError{
-            ErrorCodes::ParseError,
-            std::string("Parse error: ") + e.what()
-        };
+        try {
+            // Parse JSON-RPC request
+            json requestJson = json::parse(line);
+            IPCRequest request = IPCRequest::FromJson(requestJson);
 
-        std::string responseStr = errorResponse.ToJson().dump() + "\n";
-        SendAll(clientFd, responseStr, 5000);
-    } catch (const std::exception& e) {
-        std::cerr << "IPC error: " << e.what() << std::endl;
+            // Set current client FD for handler
+            currentClientFd_ = clientFd;
+
+            // Handle request
+            IPCResponse response = HandleRequest(request);
+
+            // Clear current client FD
+            currentClientFd_ = INVALID_SOCKET_VALUE;
+
+            // Send response
+            std::string responseStr = response.ToJson().dump();
+            responseStr += "\n";  // Add newline delimiter
+
+            if (!SendAll(clientFd, responseStr, 5000)) {
+                std::cerr << "Failed to send response: " << GetLastErrorString() << std::endl;
+                RemoveClient(clientFd);
+                return;
+            }
+        } catch (const json::exception& e) {
+            std::cerr << "JSON parse error: " << e.what() << std::endl;
+            currentClientFd_ = INVALID_SOCKET_VALUE;
+
+            // Send error response
+            IPCResponse errorResponse;
+            errorResponse.id = 0;  // Unknown ID
+            errorResponse.error = IPCError{
+                ErrorCodes::ParseError,
+                std::string("Parse error: ") + e.what()
+            };
+
+            std::string responseStr = errorResponse.ToJson().dump() + "\n";
+            SendAll(clientFd, responseStr, 5000);
+        } catch (const std::exception& e) {
+            std::cerr << "IPC error: " << e.what() << std::endl;
+            currentClientFd_ = INVALID_SOCKET_VALUE;
+        }
     }
 }
 
 void IPCServer::RemoveClient(socket_t clientFd) {
     CloseSocket(clientFd);
     clients_.erase(std::remove(clients_.begin(), clients_.end(), clientFd), clients_.end());
+    recvBuffers_.erase(clientFd);
 
     if (disconnectCallback_) {
         disconnectCallback_(clientFd);

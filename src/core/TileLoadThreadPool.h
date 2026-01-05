@@ -11,7 +11,7 @@
 #include <atomic>
 #include <set>
 
-class SlideLoader;
+class ISlideSource;
 
 class TileLoadThreadPool {
 public:
@@ -21,7 +21,7 @@ public:
     ~TileLoadThreadPool();
 
     // Initialize with dependencies (must be called before Start)
-    void Initialize(SlideLoader* loader, TileCache* cache, TileReadyCallback onTileReady);
+    void Initialize(ISlideSource* source, TileCache* cache, TileReadyCallback onTileReady);
 
     // Start/stop the thread pool
     void Start();
@@ -49,7 +49,7 @@ private:
     void ProcessRequest(const TileLoadRequest& request);
 
     // Dependencies
-    SlideLoader* loader_ = nullptr;
+    ISlideSource* source_ = nullptr;
     TileCache* cache_ = nullptr;
     TileReadyCallback onTileReady_;
 

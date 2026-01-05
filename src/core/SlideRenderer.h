@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
-#include <set>
-#include <mutex>
 
-class SlideLoader;
+#include "TileConstants.h"
+
+class ISlideSource;
 class Viewport;
 class TextureManager;
 class TileCache;
@@ -17,7 +17,7 @@ struct TileData;
 
 class SlideRenderer {
 public:
-    SlideRenderer(SlideLoader* loader, SDL_Renderer* renderer, TextureManager* textureManager);
+    SlideRenderer(ISlideSource* source, SDL_Renderer* renderer, TextureManager* textureManager);
     ~SlideRenderer();
 
     // Lifecycle management for async loading
@@ -49,19 +49,12 @@ private:
     void RenderTileToScreen(const TileKey& key, const TileData* tileData,
                             const Viewport& viewport, int32_t level);
 
-    // Callback when background thread finishes loading a tile
-    void OnTileReady(const TileKey& key);
-
-    SlideLoader* loader_;
+    ISlideSource* source_;
     SDL_Renderer* renderer_;
     TextureManager* textureManager_;
     std::unique_ptr<TileCache> tileCache_;
     std::unique_ptr<TileLoadThreadPool> threadPool_;
 
-    // Track tiles that have been submitted for async loading
-    std::set<TileKey> pendingTiles_;
-    std::mutex pendingMutex_;
-
     // Tile size (512x512 is standard)
-    static constexpr int32_t TILE_SIZE = 512;
+    static constexpr int32_t TILE_SIZE = pathview::kTileSize;
 };

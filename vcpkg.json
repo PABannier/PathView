@@ -9,6 +9,7 @@
     "simdjson",
     "protobuf",
     "abseil",
-    "libpng"
+    "libpng",
+    "openssl"
   ]
 }

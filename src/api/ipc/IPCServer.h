@@ -4,6 +4,7 @@
 #include <functional>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 // Cross-platform socket includes
 #ifdef _WIN32
@@ -116,6 +117,7 @@ private:
     socket_t serverFd_;
     int port_;
     std::vector<socket_t> clients_;
+    std::unordered_map<socket_t, std::string> recvBuffers_;
     DisconnectCallback disconnectCallback_;
     socket_t currentClientFd_;  // Set during HandleRequest
 
