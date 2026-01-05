@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include <cctype>
 
 namespace pathview {
 namespace remote {

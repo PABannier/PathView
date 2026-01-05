@@ -1,6 +1,7 @@
 #include "TileLoadThreadPool.h"
 #include "ISlideSource.h"
 #include "SlideLoader.h"  // For LevelDimensions
+#include "TileConstants.h"
 #include <iostream>
 
 TileLoadThreadPool::TileLoadThreadPool(size_t numThreads)
@@ -201,16 +202,16 @@ void TileLoadThreadPool::ProcessRequest(const TileLoadRequest& request) {
     double downsample = source_->GetLevelDownsample(key.level);
 
     // Calculate tile position in level 0 coordinates
-    int64_t x0 = static_cast<int64_t>(key.tileX * 512 * downsample);  // TILE_SIZE = 512
-    int64_t y0 = static_cast<int64_t>(key.tileY * 512 * downsample);
+    int64_t x0 = static_cast<int64_t>(key.tileX) * pathview::kTileSize * downsample;
+    int64_t y0 = static_cast<int64_t>(key.tileY) * pathview::kTileSize * downsample;
 
     // Calculate tile dimensions at this level
     auto levelDims = source_->GetLevelDimensions(key.level);
-    int64_t levelX = key.tileX * 512;
-    int64_t levelY = key.tileY * 512;
+    int64_t levelX = static_cast<int64_t>(key.tileX) * pathview::kTileSize;
+    int64_t levelY = static_cast<int64_t>(key.tileY) * pathview::kTileSize;
 
-    int64_t tileWidth = std::min(static_cast<int64_t>(512), levelDims.width - levelX);
-    int64_t tileHeight = std::min(static_cast<int64_t>(512), levelDims.height - levelY);
+    int64_t tileWidth = std::min(static_cast<int64_t>(pathview::kTileSize), levelDims.width - levelX);
+    int64_t tileHeight = std::min(static_cast<int64_t>(pathview::kTileSize), levelDims.height - levelY);
 
     if (tileWidth <= 0 || tileHeight <= 0) {
         return;

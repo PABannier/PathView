@@ -32,6 +32,10 @@ void Minimap::Initialize() {
     }
 
     // Use the lowest resolution level for overview
+    if (source_->GetLevelCount() <= 0) {
+        std::cerr << "Minimap: No levels available" << std::endl;
+        return;
+    }
     int32_t lowestLevel = source_->GetLevelCount() - 1;
     auto dims = source_->GetLevelDimensions(lowestLevel);
 
@@ -184,6 +188,9 @@ SDL_Rect Minimap::CalculateViewportRect(const Viewport& viewport) const {
     // Get slide dimensions
     int64_t slideWidth = source_->GetWidth();
     int64_t slideHeight = source_->GetHeight();
+    if (slideWidth <= 0 || slideHeight <= 0) {
+        return {minimapRect_.x, minimapRect_.y, 0, 0};
+    }
 
     // Calculate viewport position and size as fractions of slide
     double leftFrac = visibleRegion.x / slideWidth;
@@ -225,6 +232,9 @@ void Minimap::HandleClick(int x, int y, Viewport& viewport) {
     // Convert to slide coordinates
     int64_t slideWidth = source_->GetWidth();
     int64_t slideHeight = source_->GetHeight();
+    if (slideWidth <= 0 || slideHeight <= 0) {
+        return;
+    }
 
     double slideX = fracX * slideWidth;
     double slideY = fracY * slideHeight;

@@ -87,7 +87,7 @@ private:
     void OpenFileDialog();
     void LoadSlide(const std::string& path);
     void OpenPolygonFileDialog();
-    void LoadPolygons(const std::string& path);
+    bool LoadPolygons(const std::string& path);
 
     // Remote slide handling
     void OpenServerConnectionDialog();
@@ -107,6 +107,7 @@ private:
     void RenderPolygonTab();
     void RenderActionCardsTab();
     void RenderNavigationLockIndicator();
+    void ClearSlideState();
 
     // Navigation lock helpers
     bool IsNavigationLocked() const;

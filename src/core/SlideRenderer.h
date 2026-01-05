@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
-#include <set>
-#include <mutex>
+
+#include "TileConstants.h"
 
 class ISlideSource;
 class Viewport;
@@ -49,19 +49,12 @@ private:
     void RenderTileToScreen(const TileKey& key, const TileData* tileData,
                             const Viewport& viewport, int32_t level);
 
-    // Callback when background thread finishes loading a tile
-    void OnTileReady(const TileKey& key);
-
     ISlideSource* source_;
     SDL_Renderer* renderer_;
     TextureManager* textureManager_;
     std::unique_ptr<TileCache> tileCache_;
     std::unique_ptr<TileLoadThreadPool> threadPool_;
 
-    // Track tiles that have been submitted for async loading
-    std::set<TileKey> pendingTiles_;
-    std::mutex pendingMutex_;
-
     // Tile size (512x512 is standard)
-    static constexpr int32_t TILE_SIZE = 512;
+    static constexpr int32_t TILE_SIZE = pathview::kTileSize;
 };

@@ -67,6 +67,9 @@ public:
     // Render polygons for current viewport
     void Render(const Viewport& viewport);
 
+    // Clear loaded polygons and associated metadata
+    void Clear();
+
     // Visibility control
     void SetVisible(bool visible) { visible_ = visible; }
     bool IsVisible() const { return visible_; }

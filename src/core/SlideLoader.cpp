@@ -1,6 +1,8 @@
 #include "SlideLoader.h"
 #include <iostream>
 #include <cstring>
+#include <limits>
+#include <new>
 
 SlideLoader::SlideLoader(const std::string& path)
     : slide_(nullptr)
@@ -146,9 +148,24 @@ uint32_t* SlideLoader::ReadRegion(int32_t level, int64_t x, int64_t y, int64_t w
         return nullptr;
     }
 
+    if (width <= 0 || height <= 0) {
+        std::cerr << "Invalid region size: " << width << "x" << height << std::endl;
+        return nullptr;
+    }
+
+    if (width > static_cast<int64_t>(
+                    std::numeric_limits<size_t>::max() / static_cast<size_t>(height))) {
+        std::cerr << "Region size too large: " << width << "x" << height << std::endl;
+        return nullptr;
+    }
+
     // Allocate buffer for pixels
-    int64_t pixelCount = width * height;
-    uint32_t* pixels = new uint32_t[pixelCount];
+    size_t pixelCount = static_cast<size_t>(width) * static_cast<size_t>(height);
+    uint32_t* pixels = new (std::nothrow) uint32_t[pixelCount];
+    if (!pixels) {
+        std::cerr << "Failed to allocate pixel buffer (" << pixelCount << " pixels)" << std::endl;
+        return nullptr;
+    }
 
     // Read region from OpenSlide
     // OpenSlide returns ARGB data (pre-multiplied alpha)
@@ -167,8 +184,8 @@ uint32_t* SlideLoader::ReadRegion(int32_t level, int64_t x, int64_t y, int64_t w
     return pixels;
 }
 
-void SlideLoader::ConvertARGBtoRGBA(uint32_t* pixels, int64_t count) {
-    for (int64_t i = 0; i < count; ++i) {
+void SlideLoader::ConvertARGBtoRGBA(uint32_t* pixels, size_t count) {
+    for (size_t i = 0; i < count; ++i) {
         uint32_t argb = pixels[i];
 
         // Extract components

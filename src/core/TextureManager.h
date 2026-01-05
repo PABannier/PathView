@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include <string>
+#include <functional>
 
 struct TileKey {
     int32_t level;
@@ -25,10 +26,24 @@ struct TileKey {
 
 // Hash function for TileKey
 struct TileKeyHash {
-    size_t operator()(const TileKey& k) const {
-        return ((size_t)k.level << 48) | ((size_t)k.tileX << 24) | (size_t)k.tileY;
+    size_t operator()(const TileKey& k) const noexcept {
+        size_t seed = 0;
+        size_t h1 = std::hash<int32_t>{}(k.level);
+        size_t h2 = std::hash<int32_t>{}(k.tileX);
+        size_t h3 = std::hash<int32_t>{}(k.tileY);
+
+        constexpr size_t kHashMix = sizeof(size_t) >= 8
+            ? static_cast<size_t>(0x9e3779b97f4a7c15ULL)
+            : static_cast<size_t>(0x9e3779b9UL);
+
+        seed ^= h1 + kHashMix + (seed << 6) + (seed >> 2);
+        seed ^= h2 + kHashMix + (seed << 6) + (seed >> 2);
+        seed ^= h3 + kHashMix + (seed << 6) + (seed >> 2);
+        return seed;
     }
 };
+
+class TileCache;
 
 class TextureManager {
 public:
@@ -50,6 +65,9 @@ public:
 
     // Clear all cached textures
     void ClearCache();
+
+    // Remove textures for tiles that are no longer in the tile cache
+    void PruneCache(const TileCache& tileCache);
 
     // Get cache statistics
     size_t GetCacheSize() const { return textureCache_.size(); }

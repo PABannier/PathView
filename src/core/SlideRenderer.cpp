@@ -27,8 +27,7 @@ SlideRenderer::~SlideRenderer() {
 void SlideRenderer::Initialize() {
     if (!threadPool_) {
         threadPool_ = std::make_unique<TileLoadThreadPool>(NUM_WORKER_THREADS);
-        threadPool_->Initialize(source_, tileCache_.get(),
-            [this](const TileKey& key) { OnTileReady(key); });
+        threadPool_->Initialize(source_, tileCache_.get(), nullptr);
         threadPool_->Start();
         std::cout << "SlideRenderer: Async tile loading initialized" << std::endl;
     }
@@ -46,12 +45,19 @@ void SlideRenderer::Render(const Viewport& viewport) {
     if (!source_ || !source_->IsValid()) {
         return;
     }
+    if (source_->GetLevelCount() <= 0) {
+        return;
+    }
 
     // Select appropriate level based on zoom
     int32_t level = SelectLevel(viewport.GetZoom());
 
     // Render using tiles
     RenderTiled(viewport, level);
+
+    if (textureManager_ && tileCache_) {
+        textureManager_->PruneCache(*tileCache_);
+    }
 }
 
 size_t SlideRenderer::GetCacheTileCount() const {
@@ -70,15 +76,10 @@ size_t SlideRenderer::GetPendingTileCount() const {
     return threadPool_ ? threadPool_->GetPendingCount() : 0;
 }
 
-void SlideRenderer::OnTileReady(const TileKey& key) {
-    // Called from background thread when a tile finishes loading
-    // Remove from our pending set
-    std::lock_guard<std::mutex> lock(pendingMutex_);
-    pendingTiles_.erase(key);
-    // The tile is now in cache and will be picked up on next render frame
-}
-
 int32_t SlideRenderer::SelectLevel(double zoom) const {
+    if (zoom <= 0.0) {
+        return 0;
+    }
     // Goal: Select level where downsample ≈ 1/zoom
     // At 100% zoom (1.0), we want level 0 (downsample 1)
     // At 50% zoom (0.5), we want a level with downsample ~2
@@ -86,6 +87,9 @@ int32_t SlideRenderer::SelectLevel(double zoom) const {
 
     double targetDownsample = 1.0 / zoom;
     int32_t levelCount = source_->GetLevelCount();
+    if (levelCount <= 0) {
+        return 0;
+    }
 
     int32_t bestLevel = 0;
     double bestDiff = std::abs(source_->GetLevelDownsample(0) - targetDownsample);
@@ -124,10 +128,10 @@ std::vector<TileKey> SlideRenderer::EnumerateVisibleTiles(const Viewport& viewpo
     double downsample = source_->GetLevelDownsample(level);
 
     // Convert visible region to level coordinates
-    int64_t levelLeft = static_cast<int64_t>(visibleRegion.x / downsample);
-    int64_t levelTop = static_cast<int64_t>(visibleRegion.y / downsample);
-    int64_t levelRight = static_cast<int64_t>((visibleRegion.x + visibleRegion.width) / downsample);
-    int64_t levelBottom = static_cast<int64_t>((visibleRegion.y + visibleRegion.height) / downsample);
+    int64_t levelLeft = static_cast<int64_t>(std::floor(visibleRegion.x / downsample));
+    int64_t levelTop = static_cast<int64_t>(std::floor(visibleRegion.y / downsample));
+    int64_t levelRight = static_cast<int64_t>(std::ceil((visibleRegion.x + visibleRegion.width) / downsample));
+    int64_t levelBottom = static_cast<int64_t>(std::ceil((visibleRegion.y + visibleRegion.height) / downsample));
 
     // Get level dimensions
     auto levelDims = source_->GetLevelDimensions(level);
@@ -138,11 +142,15 @@ std::vector<TileKey> SlideRenderer::EnumerateVisibleTiles(const Viewport& viewpo
     levelRight = std::min(levelDims.width, levelRight);
     levelBottom = std::min(levelDims.height, levelBottom);
 
+    if (levelRight <= levelLeft || levelBottom <= levelTop) {
+        return tiles;
+    }
+
     // Calculate tile indices
     int32_t startTileX = static_cast<int32_t>(levelLeft / TILE_SIZE);
     int32_t startTileY = static_cast<int32_t>(levelTop / TILE_SIZE);
-    int32_t endTileX = static_cast<int32_t>(levelRight / TILE_SIZE);
-    int32_t endTileY = static_cast<int32_t>(levelBottom / TILE_SIZE);
+    int32_t endTileX = static_cast<int32_t>((levelRight - 1) / TILE_SIZE);
+    int32_t endTileY = static_cast<int32_t>((levelBottom - 1) / TILE_SIZE);
 
     // Enumerate all visible tiles
     for (int32_t ty = startTileY; ty <= endTileY; ++ty) {
@@ -171,21 +179,10 @@ void SlideRenderer::LoadAndRenderTile(const TileKey& key, const Viewport& viewpo
 
     // 3. Submit async load request if thread pool is available and tile not already pending
     if (threadPool_) {
-        bool alreadyPending = false;
-        {
-            std::lock_guard<std::mutex> lock(pendingMutex_);
-            alreadyPending = pendingTiles_.find(key) != pendingTiles_.end();
-            if (!alreadyPending) {
-                pendingTiles_.insert(key);
-            }
-        }
-
-        if (!alreadyPending) {
-            TileLoadPriority priority = fallbackTile
-                ? TileLoadPriority::VISIBLE    // Has fallback showing
-                : TileLoadPriority::URGENT;    // No fallback, high priority
-            threadPool_->SubmitRequest(TileLoadRequest(key, priority));
-        }
+        TileLoadPriority priority = fallbackTile
+            ? TileLoadPriority::VISIBLE    // Has fallback showing
+            : TileLoadPriority::URGENT;    // No fallback, high priority
+        threadPool_->SubmitRequest(TileLoadRequest(key, priority));
     }
 }
 
@@ -193,6 +190,9 @@ const TileData* SlideRenderer::FindBestFallback(const TileKey& key, TileKey* out
     // Search from next coarser level down to lowest resolution
     int32_t levelCount = source_->GetLevelCount();
     double targetDownsample = source_->GetLevelDownsample(key.level);
+    if (targetDownsample <= 0.0) {
+        return nullptr;
+    }
 
     for (int32_t l = key.level + 1; l < levelCount; ++l) {
         double fallbackDownsample = source_->GetLevelDownsample(l);

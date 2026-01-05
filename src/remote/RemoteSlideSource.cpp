@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include <limits>
+#include <new>
 
 namespace pathview {
 namespace remote {
@@ -54,6 +56,9 @@ LevelDimensions RemoteSlideSource::GetLevelDimensions(int32_t level) const {
     }
 
     double downsample = GetLevelDownsample(level);
+    if (downsample <= 0.0) {
+        return {0, 0};
+    }
     return {
         static_cast<int64_t>(info_.width / downsample),
         static_cast<int64_t>(info_.height / downsample)
@@ -89,8 +94,23 @@ uint32_t* RemoteSlideSource::ReadRegion(int32_t level, int64_t x, int64_t y,
         return nullptr;
     }
 
+    if (width <= 0 || height <= 0) {
+        return nullptr;
+    }
+
+    if (width > static_cast<int64_t>(
+                    std::numeric_limits<size_t>::max() / static_cast<size_t>(height))) {
+        return nullptr;
+    }
+
     double downsample = GetLevelDownsample(level);
+    if (downsample <= 0.0) {
+        return nullptr;
+    }
     int32_t serverTileSize = info_.tileSize;
+    if (serverTileSize <= 0) {
+        return nullptr;
+    }
 
     // Convert request from level-0 to level-N coordinates
     int64_t levelX = static_cast<int64_t>(x / downsample);
@@ -105,8 +125,12 @@ uint32_t* RemoteSlideSource::ReadRegion(int32_t level, int64_t x, int64_t y,
     int32_t endTileY = static_cast<int32_t>((levelY + levelH - 1) / serverTileSize);
 
     // Allocate output buffer
-    uint32_t* output = new uint32_t[width * height];
-    std::memset(output, 0, width * height * sizeof(uint32_t));
+    size_t pixelCount = static_cast<size_t>(width) * static_cast<size_t>(height);
+    uint32_t* output = new (std::nothrow) uint32_t[pixelCount];
+    if (!output) {
+        return nullptr;
+    }
+    std::memset(output, 0, pixelCount * sizeof(uint32_t));
 
     // Fetch and composite each tile
     for (int32_t ty = startTileY; ty <= endTileY; ++ty) {
@@ -196,6 +220,10 @@ uint32_t* RemoteSlideSource::FetchAndDecodeTile(int32_t level,
 
 uint32_t* RemoteSlideSource::DecodeJpeg(const std::vector<uint8_t>& jpegData,
                                           int& outWidth, int& outHeight) {
+    if (jpegData.empty()) {
+        return nullptr;
+    }
+
     // Use SDL_image to decode JPEG
     SDL_RWops* rw = SDL_RWFromConstMem(jpegData.data(), static_cast<int>(jpegData.size()));
     if (!rw) {

@@ -16,6 +16,9 @@
 #include <simdjson.h>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
+#include <cctype>
+#include <cmath>
 
 namespace pathview {
 namespace remote {
@@ -61,9 +64,22 @@ ConnectionResult WsiStreamClient::Connect(const std::string& serverUrl,
 
         // Parse health response
         simdjson::dom::parser parser;
-        simdjson::dom::element doc = parser.parse(res->body);
+        auto docResult = parser.parse(res->body);
+        if (docResult.error() != simdjson::SUCCESS) {
+            result.errorMessage = "Invalid health response JSON";
+            connected_ = false;
+            return result;
+        }
 
-        std::string_view status = doc["status"].get_string().value();
+        simdjson::dom::element doc = docResult.value();
+        auto statusResult = doc["status"].get_string();
+        if (statusResult.error() != simdjson::SUCCESS) {
+            result.errorMessage = "Health response missing 'status'";
+            connected_ = false;
+            return result;
+        }
+
+        std::string_view status = statusResult.value();
         if (status != "healthy") {
             result.errorMessage = "Server reports unhealthy status: " + std::string(status);
             connected_ = false;
@@ -153,7 +169,12 @@ std::optional<std::vector<SlideEntry>> WsiStreamClient::FetchSlideList(int limit
 
         // Parse JSON response
         simdjson::dom::parser parser;
-        simdjson::dom::element doc = parser.parse(res->body);
+        auto docResult = parser.parse(res->body);
+        if (docResult.error() != simdjson::SUCCESS) {
+            lastError_ = "Invalid slide list JSON";
+            return std::nullopt;
+        }
+        simdjson::dom::element doc = docResult.value();
 
         std::vector<SlideEntry> slides;
 
@@ -251,7 +272,12 @@ std::optional<SlideInfo> WsiStreamClient::FetchSlideInfo(const std::string& slid
         // API returns: { slide_id, format, width, height, level_count, levels: [...] }
         // Each level: { level, width, height, tile_width, tile_height, tiles_x, tiles_y, downsample }
         simdjson::dom::parser parser;
-        simdjson::dom::element doc = parser.parse(res->body);
+        auto docResult = parser.parse(res->body);
+        if (docResult.error() != simdjson::SUCCESS) {
+            lastError_ = "Invalid slide info JSON";
+            return std::nullopt;
+        }
+        simdjson::dom::element doc = docResult.value();
 
         SlideInfo info;
         info.id = slideId;

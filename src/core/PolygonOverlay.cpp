@@ -164,6 +164,15 @@ void PolygonOverlay::Render(const Viewport& viewport) {
     }
 }
 
+void PolygonOverlay::Clear() {
+    polygons_.clear();
+    classColors_.clear();
+    classNames_.clear();
+    classIds_.clear();
+    spatialIndex_.reset();
+    visible_ = false;
+}
+
 void PolygonOverlay::RenderPolygonBatch(const std::vector<Polygon*>& batch,
                                         int classId,
                                         const Viewport& viewport) {

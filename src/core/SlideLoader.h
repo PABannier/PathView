@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <cstddef>
 #include <openslide/openslide.h>
 
 struct LevelDimensions {
@@ -39,7 +40,7 @@ public:
     const std::string& GetPath() const { return path_; }
 
 private:
-    void ConvertARGBtoRGBA(uint32_t* pixels, int64_t count);
+    void ConvertARGBtoRGBA(uint32_t* pixels, size_t count);
     void CheckError();
 
     openslide_t* slide_;

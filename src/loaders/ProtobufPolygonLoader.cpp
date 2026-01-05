@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
+#include <cmath>
 
 bool ProtobufPolygonLoader::Load(const std::string& filepath,
                                  std::vector<Polygon>& outPolygons,

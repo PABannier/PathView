@@ -21,6 +21,7 @@ void Viewport::SetWindowSize(int width, int height) {
     windowWidth_ = width;
     windowHeight_ = height;
     CalculateZoomLimits();
+    zoom_ = std::clamp(zoom_, minZoom_, maxZoom_);
     ClampToBounds();
 }
 
@@ -175,7 +176,7 @@ void Viewport::ClampToBounds() {
 }
 
 void Viewport::CalculateZoomLimits() {
-    if (slideWidth_ == 0 || slideHeight_ == 0) {
+    if (slideWidth_ <= 0 || slideHeight_ <= 0 || windowWidth_ <= 0 || windowHeight_ <= 0) {
         minZoom_ = 0.01;
         maxZoom_ = 4.0;
         return;
@@ -185,9 +186,10 @@ void Viewport::CalculateZoomLimits() {
     double zoomX = static_cast<double>(windowWidth_) / slideWidth_;
     double zoomY = static_cast<double>(windowHeight_) / slideHeight_;
     minZoom_ = std::min(zoomX, zoomY) * 0.95; // 95% to add small margin
+    minZoom_ = std::max(minZoom_, 0.01);
 
-    // Maximum zoom: 4x magnification or 1:1 pixel mapping, whichever is larger
-    maxZoom_ = 4.0;
+    // Maximum zoom: 4x magnification or larger if slide is smaller than the window
+    maxZoom_ = std::max(4.0, minZoom_);
 
     std::cout << "Viewport zoom limits: " << minZoom_ << " - " << maxZoom_ << std::endl;
 }

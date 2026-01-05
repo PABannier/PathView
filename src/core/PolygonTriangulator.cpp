@@ -15,6 +15,14 @@ std::vector<int> PolygonTriangulator::Triangulate(const std::vector<Vec2>& verti
         return triangles;
     }
 
+    // Determine polygon winding (signed area > 0 means CCW)
+    double signedArea = 0.0;
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        size_t j = (i + 1) % vertices.size();
+        signedArea += vertices[i].x * vertices[j].y - vertices[j].x * vertices[i].y;
+    }
+    bool isCCW = signedArea > 0.0;
+
     // Create list of active vertex indices
     std::vector<int> indices;
     indices.reserve(vertices.size());
@@ -30,7 +38,7 @@ std::vector<int> PolygonTriangulator::Triangulate(const std::vector<Vec2>& verti
         bool earFound = false;
 
         for (size_t i = 0; i < indices.size(); ++i) {
-            if (IsEar(vertices, indices, static_cast<int>(i))) {
+            if (IsEar(vertices, indices, static_cast<int>(i), isCCW)) {
                 // Found an ear - add triangle and remove the ear vertex
                 int prevIdx = (i == 0) ? static_cast<int>(indices.size() - 1) : static_cast<int>(i - 1);
                 int nextIdx = (i == indices.size() - 1) ? 0 : static_cast<int>(i + 1);
@@ -73,7 +81,8 @@ std::vector<int> PolygonTriangulator::Triangulate(const std::vector<Vec2>& verti
 
 bool PolygonTriangulator::IsEar(const std::vector<Vec2>& vertices,
                                 const std::vector<int>& indices,
-                                int i) {
+                                int i,
+                                bool isCCW) {
     int n = static_cast<int>(indices.size());
     int prevIdx = (i == 0) ? n - 1 : i - 1;
     int nextIdx = (i == n - 1) ? 0 : i + 1;
@@ -83,7 +92,7 @@ bool PolygonTriangulator::IsEar(const std::vector<Vec2>& vertices,
     const Vec2& next = vertices[indices[nextIdx]];
 
     // Check if triangle is convex
-    if (!IsConvex(prev, curr, next)) {
+    if (!IsConvex(prev, curr, next, isCCW)) {
         return false;
     }
 
@@ -102,10 +111,11 @@ bool PolygonTriangulator::IsEar(const std::vector<Vec2>& vertices,
     return true;
 }
 
-bool PolygonTriangulator::IsConvex(const Vec2& a, const Vec2& b, const Vec2& c) {
+bool PolygonTriangulator::IsConvex(const Vec2& a, const Vec2& b, const Vec2& c, bool isCCW) {
     // Compute cross product of vectors (b-a) and (c-b)
     double cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
-    return cross > 0;  // Positive cross product means counter-clockwise turn (convex)
+    constexpr double kEpsilon = 1e-12;
+    return isCCW ? (cross > kEpsilon) : (cross < -kEpsilon);
 }
 
 bool PolygonTriangulator::PointInTriangle(const Vec2& p,

@@ -22,6 +22,16 @@ TileCache::~TileCache() {
     std::cout << "  Hit rate: " << (GetHitRate() * 100.0) << "%" << std::endl;
 }
 
+size_t TileCache::GetTileCount() const {
+    std::shared_lock<std::shared_mutex> lock(cacheMutex_);
+    return cache_.size();
+}
+
+size_t TileCache::GetMemoryUsage() const {
+    std::shared_lock<std::shared_mutex> lock(cacheMutex_);
+    return currentMemoryUsage_;
+}
+
 const TileData* TileCache::GetTile(const TileKey& key) {
     // Use unique_lock because TouchTile modifies LRU list on hit
     std::unique_lock<std::shared_mutex> lock(cacheMutex_);
