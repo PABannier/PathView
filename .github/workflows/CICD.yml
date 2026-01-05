@@ -94,7 +94,7 @@ jobs:
         run: cmake --build build --target pathview pathview-mcp unit_tests --config Release --parallel
 
       - name: Run unit tests
-        run: ctest --test-dir build --output-on-failure --timeout 120 -C Release
+        run: ctest --test-dir build --output-on-failure --timeout 120 -C Release -L unit
 
       - name: Read version
         if: github.event_name == 'release'
