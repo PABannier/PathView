@@ -88,7 +88,8 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=$VCPKG_TARGET_TRIPLET \
             -DVCPKG_INSTALLED_DIR=$VCPKG_INSTALLED_DIR \
-            -DBUILD_TESTING=ON
+            -DBUILD_TESTING=ON \
+            -DBUILD_INTEGRATION_TESTS=OFF
 
       - name: Build
         run: cmake --build build --target pathview pathview-mcp unit_tests --config Release --parallel
