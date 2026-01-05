@@ -175,7 +175,8 @@ wait_for_minio() {
     local elapsed=0
 
     while [ $elapsed -lt $STARTUP_TIMEOUT ]; do
-        if curl -s "$MINIO_URL/minio/health/live" | grep -q ""; then
+        # Check if MinIO health endpoint returns HTTP 200
+        if curl -s -o /dev/null -w "%{http_code}" "$MINIO_URL/minio/health/live" | grep -q "200"; then
             log_info "MinIO is ready!"
             return 0
         fi
