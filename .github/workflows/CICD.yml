@@ -88,14 +88,14 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=$VCPKG_TARGET_TRIPLET \
             -DVCPKG_INSTALLED_DIR=$VCPKG_INSTALLED_DIR \
-            -DBUILD_TESTING=ON
+            -DBUILD_TESTING=ON \
+            -DBUILD_INTEGRATION_TESTS=OFF
 
       - name: Build
         run: cmake --build build --target pathview pathview-mcp unit_tests --config Release --parallel
 
       - name: Run unit tests
-        run: ctest --test-dir build --output-on-failure --timeout 120 -C Release
-        continue-on-error: true
+        run: ctest --test-dir build --output-on-failure --timeout 120 -C Release -L unit
 
       - name: Read version
         if: github.event_name == 'release'

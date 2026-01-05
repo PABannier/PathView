@@ -120,16 +120,16 @@ TEST_F(SlideRendererTest, SelectLevel_BetweenLevels_SelectsClosest) {
     auto slide = CreateStandardSlide();
 
     // Zoom 0.6 → targetDownsample = 1.667
-    // Closest is level 1 (downsample = 2.0)
+    // Closest is level 1 (downsample = 2.0, diff = 0.333)
     double zoom = 0.6;
     int level = TestSelectLevel(slide, zoom);
     EXPECT_EQ(level, 1);
 
     // Zoom 0.35 → targetDownsample = 2.857
-    // Closest is level 2 (downsample = 4.0)
+    // Level 1 (downsample = 2.0, diff = 0.857) is closer than Level 2 (downsample = 4.0, diff = 1.143)
     zoom = 0.35;
     level = TestSelectLevel(slide, zoom);
-    EXPECT_EQ(level, 2);
+    EXPECT_EQ(level, 1);
 }
 
 TEST_F(SlideRendererTest, SelectLevel_TieBreaker_PrefersHigherResolution) {

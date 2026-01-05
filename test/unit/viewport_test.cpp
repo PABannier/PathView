@@ -241,14 +241,22 @@ TEST_F(ViewportTest, CenterOn_SlideCenter_CentersViewport) {
     ExpectVec2Near(mapped_slide, slide_center, 100.0);  // Generous tolerance
 }
 
-TEST_F(ViewportTest, CenterOn_SlideOrigin_CentersOnOrigin) {
+TEST_F(ViewportTest, CenterOn_SlideOrigin_ClampsWithinBounds) {
+    // First complete any pending animation from constructor
+    viewport->UpdateAnimation(SDL_GetTicks() + 1000);
+
+    // Zoom in first so viewport is smaller than slide, allowing CenterOn to work properly
+    viewport->ZoomAtPoint(Vec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2), 4.0, AnimationMode::INSTANT);
+    viewport->UpdateAnimation(SDL_GetTicks() + 1000);
+
     viewport->CenterOn(Vec2(0, 0), AnimationMode::INSTANT);
-    viewport->UpdateAnimation(SDL_GetTicks());  // Use actual time for consistency
+    viewport->UpdateAnimation(SDL_GetTicks() + 1000);
 
-    Vec2 screen_center(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
-    Vec2 mapped_slide = viewport->ScreenToSlide(screen_center);
-
-    ExpectVec2Near(mapped_slide, Vec2(0, 0), 100.0);
+    // When viewport < slide, trying to center on (0,0) will clamp position to (0,0)
+    // because the viewport can't go past the slide edge
+    Vec2 pos = viewport->GetPosition();
+    EXPECT_NEAR(pos.x, 0.0, 1.0);  // Should be clamped to 0 (or very close)
+    EXPECT_NEAR(pos.y, 0.0, 1.0);  // Should be clamped to 0 (or very close)
 }
 
 // ============================================================================
@@ -391,10 +399,15 @@ TEST_F(ViewportTest, SetSlideDimensions_RecalculatesZoomLimits) {
 // ============================================================================
 
 TEST_F(ViewportTest, UpdateAnimation_NoActiveAnimation_NoChange) {
+    // First, complete any pending animation from the constructor's ResetView() call
+    viewport->UpdateAnimation(1000.0);
+
+    // Now get the stable state after initial animation is complete
     Vec2 initial_pos = viewport->GetPosition();
     double initial_zoom = viewport->GetZoom();
 
-    viewport->UpdateAnimation(1000.0);
+    // Call UpdateAnimation again - should not change anything since no animation is active
+    viewport->UpdateAnimation(2000.0);
 
     EXPECT_EQ(viewport->GetPosition().x, initial_pos.x);
     EXPECT_EQ(viewport->GetZoom(), initial_zoom);

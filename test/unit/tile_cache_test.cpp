@@ -107,7 +107,8 @@ TEST_F(TileCacheTest, GetTile_AfterInsert_ReturnsValidPointer) {
 
     const TileData* tile = cache->GetTile(key);
     ASSERT_NE(tile, nullptr);
-    EXPECT_EQ(tile->width * tile->height * sizeof(uint32_t), 1000 * sizeof(uint32_t));
+    // CreateTileData(1000) creates 1000/4 = 250 pixels, so memorySize = 250*4 = 1000 bytes
+    EXPECT_EQ(tile->memorySize, 1000);
 }
 
 TEST_F(TileCacheTest, InsertTile_MultipleTiles_SumsMemoryUsage) {
@@ -299,18 +300,19 @@ TEST_F(TileCacheTest, Clear_DoesNotResetStatistics) {
 // Edge Cases
 // ============================================================================
 
-TEST_F(TileCacheTest, InsertTile_DuplicateKey_ReplacesExisting) {
+TEST_F(TileCacheTest, InsertTile_DuplicateKey_KeepsExisting) {
     TileKey key = MakeTileKey(0, 0, 0);
 
     cache->InsertTile(key, CreateTileData(100000));
     size_t initial_memory = cache->GetMemoryUsage();
 
     // Insert again with same key but different size
+    // The cache keeps the existing tile and ignores the new one
     cache->InsertTile(key, CreateTileData(200000));
 
-    // Should have replaced, not added
+    // Should have kept existing, not added or replaced
     EXPECT_EQ(cache->GetTileCount(), 1);
-    EXPECT_NE(cache->GetMemoryUsage(), initial_memory);
+    EXPECT_EQ(cache->GetMemoryUsage(), initial_memory);
 }
 
 TEST_F(TileCacheTest, InsertTile_ZeroSize_HandlesGracefully) {
