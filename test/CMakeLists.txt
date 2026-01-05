@@ -194,8 +194,81 @@ gtest_discover_tests(unit_tests
 #         TIMEOUT 60
 # )
 
+# ============================================================================
+# WSI Streamer Integration Tests
+# ============================================================================
+#
+# These tests verify PathView's ability to connect to a WSIStreamer tile server.
+# Run via: ./test/integration/wsi_streamer_e2e.sh <slide.svs>
+#
+# The bash script handles:
+#   - Starting docker-compose (wsi-streamer + minio)
+#   - Uploading a test slide
+#   - Running these tests
+#   - Cleanup
+# ============================================================================
+
+option(BUILD_INTEGRATION_TESTS "Build WSI Streamer integration tests" ${BUILD_TESTING})
+
+if(BUILD_INTEGRATION_TESTS)
+    # Find OpenSSL for URL signing (WsiStreamClient dependency)
+    find_package(OpenSSL REQUIRED)
+
+    add_executable(wsi_streamer_integration_tests
+        integration/wsi_streamer_integration_test.cpp
+    )
+
+    target_include_directories(wsi_streamer_integration_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/src/remote
+        ${CMAKE_SOURCE_DIR}/src/core
+        ${CMAKE_SOURCE_DIR}/external/cpp-mcp/common
+    )
+
+    # Link WsiStreamClient source files directly (avoid full app dependencies)
+    target_sources(wsi_streamer_integration_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/src/remote/WsiStreamClient.cpp
+        ${CMAKE_SOURCE_DIR}/src/remote/UrlSigner.cpp
+    )
+
+    target_link_libraries(wsi_streamer_integration_tests PRIVATE
+        GTest::gtest
+        GTest::gtest_main
+        simdjson::simdjson
+        OpenSSL::SSL
+        OpenSSL::Crypto
+        Threads::Threads
+    )
+
+    # Platform-specific libraries
+    if(WIN32)
+        target_link_libraries(wsi_streamer_integration_tests PRIVATE ws2_32)
+    endif()
+
+    # MSVC compile options
+    if(MSVC)
+        target_compile_options(wsi_streamer_integration_tests PRIVATE
+            /W4 /WX- /utf-8 /bigobj /MP
+        )
+        target_compile_definitions(wsi_streamer_integration_tests PRIVATE
+            _CRT_SECURE_NO_WARNINGS
+            NOMINMAX
+            WIN32_LEAN_AND_MEAN
+        )
+    endif()
+
+    # Register tests with CTest (but these require external setup via bash script)
+    gtest_discover_tests(wsi_streamer_integration_tests
+        PROPERTIES
+            LABELS "integration;wsi_streamer"
+            TIMEOUT 120
+    )
+
+    message(STATUS "WSI Streamer integration tests: Enabled")
+    message(STATUS "  Run with: ./test/integration/wsi_streamer_e2e.sh <slide.svs>")
+endif()
+
 message(STATUS "=== Test Configuration ===")
 message(STATUS "GoogleTest version: 1.14.0")
 message(STATUS "Unit tests: Enabled")
-message(STATUS "Integration tests: Disabled (Phase 3)")
+message(STATUS "Integration tests: ${BUILD_INTEGRATION_TESTS}")
 message(STATUS "=========================")

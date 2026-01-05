@@ -46,7 +46,10 @@
       "Bash(vcpkg version:*)",
       "Bash(./build/test/unit_tests:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:openslide.org)"
+      "WebFetch(domain:openslide.org)",
+      "Bash(docker:*)",
+      "Bash(docker compose:*)",
+      "Bash(mc --version:*)"
     ],
     "deny": [],
     "ask": []
