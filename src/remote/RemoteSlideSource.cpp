@@ -1,6 +1,11 @@
 #include "RemoteSlideSource.h"
 #include "../core/SlideLoader.h"  // For LevelDimensions
-#include <SDL2/SDL_image.h>
+
+// stb_image for JPEG decoding (implementation in this file)
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_JPEG  // Only need JPEG support
+#include "../../external/stb_image.h"
+
 #include <iostream>
 #include <cstring>
 #include <algorithm>
@@ -224,37 +229,39 @@ uint32_t* RemoteSlideSource::DecodeJpeg(const std::vector<uint8_t>& jpegData,
         return nullptr;
     }
 
-    // Use SDL_image to decode JPEG
-    SDL_RWops* rw = SDL_RWFromConstMem(jpegData.data(), static_cast<int>(jpegData.size()));
-    if (!rw) {
-        std::cerr << "RemoteSlideSource: Failed to create RWops: " << SDL_GetError() << std::endl;
+    // Use stb_image to decode JPEG
+    int width = 0, height = 0, channels = 0;
+
+    // Request 4 channels (RGBA) for consistency with SDL pixel format
+    unsigned char* stbPixels = stbi_load_from_memory(
+        jpegData.data(),
+        static_cast<int>(jpegData.size()),
+        &width, &height, &channels,
+        4  // Force 4 channels (RGBA)
+    );
+
+    if (!stbPixels) {
+        std::cerr << "RemoteSlideSource: Failed to decode JPEG: " << stbi_failure_reason() << std::endl;
         return nullptr;
     }
 
-    SDL_Surface* surface = IMG_Load_RW(rw, 1);  // 1 = free RWops after load
-    if (!surface) {
-        std::cerr << "RemoteSlideSource: Failed to decode JPEG: " << IMG_GetError() << std::endl;
+    outWidth = width;
+    outHeight = height;
+
+    // Copy pixels to our buffer (caller owns it)
+    // stb_image returns RGBA in the order we need for SDL
+    size_t pixelCount = static_cast<size_t>(width) * height;
+    uint32_t* pixels = new (std::nothrow) uint32_t[pixelCount];
+    if (!pixels) {
+        std::cerr << "RemoteSlideSource: Failed to allocate pixel buffer" << std::endl;
+        stbi_image_free(stbPixels);
         return nullptr;
     }
 
-    outWidth = surface->w;
-    outHeight = surface->h;
+    std::memcpy(pixels, stbPixels, pixelCount * sizeof(uint32_t));
 
-    // Convert to RGBA format if needed
-    SDL_Surface* rgbaSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
-    SDL_FreeSurface(surface);
-
-    if (!rgbaSurface) {
-        std::cerr << "RemoteSlideSource: Failed to convert to RGBA: " << SDL_GetError() << std::endl;
-        return nullptr;
-    }
-
-    // Copy pixels (caller owns the buffer)
-    size_t pixelCount = static_cast<size_t>(rgbaSurface->w) * rgbaSurface->h;
-    uint32_t* pixels = new uint32_t[pixelCount];
-    std::memcpy(pixels, rgbaSurface->pixels, pixelCount * sizeof(uint32_t));
-
-    SDL_FreeSurface(rgbaSurface);
+    // Free stb_image's buffer
+    stbi_image_free(stbPixels);
 
     return pixels;
 }

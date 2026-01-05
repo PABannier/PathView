@@ -492,8 +492,8 @@ void Application::Render() {
     SDL_SetRenderDrawColor(renderer_, 32, 32, 32, 255);
     SDL_RenderClear(renderer_);
 
-    // Render slide using viewport and renderer
-    if (slideLoader_ && viewport_ && slideRenderer_) {
+    // Render slide using viewport and renderer (local or remote slides)
+    if ((slideLoader_ || remoteSlideSource_) && viewport_ && slideRenderer_) {
         slideRenderer_->Render(*viewport_);
     }
     // Fallback to preview for slides loaded in Phase 2 without viewport
@@ -516,8 +516,8 @@ void Application::Render() {
         }
     }
 
-    // Render minimap overlay
-    if (slideLoader_ && viewport_ && minimap_) {
+    // Render minimap overlay (local or remote slides)
+    if ((slideLoader_ || remoteSlideSource_) && viewport_ && minimap_) {
         minimap_->Render(*viewport_, sidebarVisible_, sidebarVisible_ ? SIDEBAR_WIDTH : 0.0f);
     }
 
