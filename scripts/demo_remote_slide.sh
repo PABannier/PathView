@@ -5,11 +5,11 @@
 #
 # This script demonstrates PathView's remote slide viewing capability by:
 #   1. Starting a WSIStreamer tile server with MinIO storage
-#   2. Uploading a test slide to the S3 bucket
+#   2. Uploading test slides to the S3 bucket
 #   3. Launching PathView for interactive testing
 #
 # Usage:
-#   ./scripts/demo_remote_slide.sh <path_to_slide.svs>
+#   ./scripts/demo_remote_slide.sh <slide1.svs> [slide2.svs] [slide3.svs] ...
 #
 # Prerequisites:
 #   - Docker and docker-compose
@@ -20,7 +20,7 @@
 #   1. Go to File -> Connect to Server (or Ctrl+Shift+O)
 #   2. Enter: http://localhost:3000
 #   3. Click Connect
-#   4. Browse and select the uploaded slide
+#   4. Browse and select the uploaded slide(s)
 #
 # ==============================================================================
 
@@ -50,6 +50,9 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
+
+# Array to store slide files
+SLIDE_FILES=()
 
 # ==============================================================================
 # Helper Functions
@@ -104,12 +107,14 @@ check_prerequisites() {
     fi
     log_info "MinIO Client: OK"
 
-    # Check slide file
-    if [ ! -f "$SLIDE_FILE" ]; then
-        log_error "Slide file not found: $SLIDE_FILE"
-        exit 1
-    fi
-    log_info "Slide file: $SLIDE_FILE"
+    # Check all slide files
+    for slide_file in "${SLIDE_FILES[@]}"; do
+        if [ ! -f "$slide_file" ]; then
+            log_error "Slide file not found: $slide_file"
+            exit 1
+        fi
+        log_info "Slide file: $slide_file"
+    done
 
     # Check PathView binary
     if [ ! -f "$PATHVIEW_BINARY" ]; then
@@ -198,32 +203,40 @@ wait_for_wsistreamer() {
 # Slide Upload
 # ==============================================================================
 
-upload_slide() {
-    log_step "Uploading slide to MinIO"
-
-    local slide_name=$(basename "$SLIDE_FILE")
+upload_slides() {
+    log_step "Uploading slides to MinIO"
 
     # Configure MinIO client
     mc alias rm local 2>/dev/null || true
     mc alias set local "$MINIO_URL" "$MINIO_USER" "$MINIO_PASS" --quiet
 
-    # Upload
-    log_info "Uploading: $slide_name"
-    mc cp "$SLIDE_FILE" "local/$BUCKET_NAME/"
+    # Upload each slide
+    for slide_file in "${SLIDE_FILES[@]}"; do
+        local slide_name=$(basename "$slide_file")
+        log_info "Uploading: $slide_name"
+        mc cp "$slide_file" "local/$BUCKET_NAME/"
+    done
 
-    log_info "Upload complete"
+    log_info "Upload complete (${#SLIDE_FILES[@]} slide(s))"
 }
 
-verify_slide() {
-    log_info "Verifying slide is accessible..."
+verify_slides() {
+    log_info "Verifying slides are accessible..."
 
-    local slide_name=$(basename "$SLIDE_FILE")
     local response=$(curl -s "$WSI_STREAMER_URL/slides")
+    local all_found=true
 
-    if echo "$response" | grep -q "$slide_name"; then
-        log_info "Slide verified in API"
-    else
-        log_error "Slide not found in API response"
+    for slide_file in "${SLIDE_FILES[@]}"; do
+        local slide_name=$(basename "$slide_file")
+        if echo "$response" | grep -q "$slide_name"; then
+            log_info "Verified: $slide_name"
+        else
+            log_error "Slide not found in API: $slide_name"
+            all_found=false
+        fi
+    done
+
+    if [ "$all_found" = false ]; then
         return 1
     fi
 }
@@ -240,12 +253,15 @@ launch_pathview() {
     echo -e "${BOLD}│  PathView Remote Slide Demo                                 │${NC}"
     echo -e "${BOLD}├─────────────────────────────────────────────────────────────┤${NC}"
     echo -e "${BOLD}│${NC}  Server URL: ${CYAN}$WSI_STREAMER_URL${NC}"
-    echo -e "${BOLD}│${NC}  Slide: ${CYAN}$(basename "$SLIDE_FILE")${NC}"
+    echo -e "${BOLD}│${NC}  Uploaded slides: ${CYAN}${#SLIDE_FILES[@]}${NC}"
+    for slide_file in "${SLIDE_FILES[@]}"; do
+        echo -e "${BOLD}│${NC}    - ${CYAN}$(basename "$slide_file")${NC}"
+    done
     echo -e "${BOLD}├─────────────────────────────────────────────────────────────┤${NC}"
-    echo -e "${BOLD}│${NC}  ${YELLOW}To view the remote slide:${NC}"
+    echo -e "${BOLD}│${NC}  ${YELLOW}To view the remote slides:${NC}"
     echo -e "${BOLD}│${NC}  1. File -> Connect to Server (Ctrl+Shift+O)"
     echo -e "${BOLD}│${NC}  2. Enter: ${CYAN}http://localhost:3000${NC}"
-    echo -e "${BOLD}│${NC}  3. Click Connect, then browse and select the slide"
+    echo -e "${BOLD}│${NC}  3. Click Connect, then browse and select a slide"
     echo -e "${BOLD}├─────────────────────────────────────────────────────────────┤${NC}"
     echo -e "${BOLD}│${NC}  ${RED}Press Ctrl+C to stop the server when done${NC}"
     echo -e "${BOLD}└─────────────────────────────────────────────────────────────┘${NC}"
@@ -260,13 +276,15 @@ launch_pathview() {
 # ==============================================================================
 
 print_usage() {
-    echo "Usage: $0 <path_to_slide.svs>"
+    echo "Usage: $0 <slide1.svs> [slide2.svs] [slide3.svs] ..."
     echo ""
     echo "Demonstrates PathView's remote slide viewing capability by starting"
-    echo "a WSIStreamer tile server and uploading a test slide."
+    echo "a WSIStreamer tile server and uploading test slides."
     echo ""
-    echo "Example:"
+    echo "Examples:"
     echo "  $0 ~/Downloads/sample.svs"
+    echo "  $0 ~/Downloads/slide1.svs ~/Downloads/slide2.svs"
+    echo "  $0 /path/to/*.svs"
 }
 
 main() {
@@ -276,13 +294,15 @@ main() {
         exit 1
     fi
 
-    SLIDE_FILE="$1"
+    # Collect all slide files
+    SLIDE_FILES=("$@")
 
     echo ""
     echo -e "${BOLD}╔═════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BOLD}║          PathView Remote Slide Viewer Demo                  ║${NC}"
     echo -e "${BOLD}╚═════════════════════════════════════════════════════════════╝${NC}"
     echo ""
+    log_info "Slides to upload: ${#SLIDE_FILES[@]}"
 
     # Set up cleanup trap
     trap cleanup EXIT
@@ -292,8 +312,8 @@ main() {
     start_services
     wait_for_minio
     wait_for_wsistreamer
-    upload_slide
-    verify_slide
+    upload_slides
+    verify_slides
     launch_pathview
 }
 
