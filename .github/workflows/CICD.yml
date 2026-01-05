@@ -95,7 +95,6 @@ jobs:
 
       - name: Run unit tests
         run: ctest --test-dir build --output-on-failure --timeout 120 -C Release
-        continue-on-error: true
 
       - name: Read version
         if: github.event_name == 'release'
