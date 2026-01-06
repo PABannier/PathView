@@ -1,63 +1,141 @@
 # PathView
 
-[![CICD](https://github.com/PABannier/PathView/actions/workflows/CICD.yml/badge.svg)](https://github.com/PABannier/PathView/actions/workflows/CICD.yml/badge.svg)
+[![CICD](https://github.com/PABannier/PathView/actions/workflows/CICD.yml/badge.svg)](https://github.com/PABannier/PathView/actions/workflows/CICD.yml)
 
-PathView is a whole-slide image (WSI) viewer for digital pathology. It combines high-performance tiled rendering and polygon overlays for cell segmentation data.
+A high-performance whole-slide image (WSI) viewer for digital pathology. PathView combines GPU-accelerated tiled rendering with polygon overlays for cell segmentation visualization and AI agent integration via the Model Context Protocol (MCP).
 
 ![PathView preview](./assets/pathview.gif)
 
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Remote Slides](#remote-slides)
+- [AI Agent Integration](#ai-agent-integration)
+- [Supported Formats](#supported-formats)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
 ## Features
 
-- Smooth pan/zoom WSI viewing with multiresolution tile loading
-- Remote slide streaming from S3-compatible storage
-- Overview minimap with click-to-jump navigation
-- Polygon overlay rendering with class-based styling (protobuf)
-- Cross-platform support: macOS, Linux
-- MCP server for programmatic control, screenshots, and ROI analysis
+| Feature | Description |
+|---------|-------------|
+| **High-Performance Rendering** | Smooth pan/zoom with multiresolution pyramid tile loading and LRU caching |
+| **Remote Streaming** | Stream slides from S3-compatible storage via WSIStreamer tile server |
+| **Polygon Overlays** | Render cell segmentation data with class-based styling from Protocol Buffers |
+| **AI Agent Control** | Full programmatic control via MCP with 27 tools for navigation, snapshots, and ROI analysis |
+| **Overview Minimap** | Click-to-jump navigation with real-time viewport indicator |
+| **Cross-Platform** | Native support for macOS and Linux |
 
-## Requirements
+---
 
-- CMake and a C++17 compiler
-- OpenSlide (system install)
-- vcpkg for third-party deps (SDL2, SDL2_image, nativefiledialog-extended, protobuf)
-
-## Build
-
-### macOS / Linux
+## Quick Start
 
 ```bash
-cd /path/to/pathview
+# Clone the repository
+git clone https://github.com/PABannier/PathView.git
+cd PathView
 
-# Set the triplet for your platform
-export VCPKG_TARGET_TRIPLET=arm64-osx   # macOS Apple Silicon
-# export VCPKG_TARGET_TRIPLET=x64-osx   # macOS Intel
-# export VCPKG_TARGET_TRIPLET=x64-linux # Linux
+# Build (macOS with Homebrew vcpkg)
+export VCPKG_TARGET_TRIPLET=arm64-osx
+cmake -B build -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_TOOLCHAIN_FILE=$(brew --prefix vcpkg)/scripts/buildsystems/vcpkg.cmake
+cmake --build build -j$(nproc)
 
-# Use Homebrew vcpkg on macOS
+# Run
+./build/pathview
+```
+
+---
+
+## Installation
+
+### Prerequisites
+
+| Dependency | Description | Installation |
+|------------|-------------|--------------|
+| CMake 3.16+ | Build system | `brew install cmake` or `apt install cmake` |
+| C++17 Compiler | GCC 8+, Clang 10+, or Apple Clang | Xcode CLI Tools or `apt install g++` |
+| OpenSlide | WSI I/O library | `brew install openslide` or `apt install libopenslide-dev` |
+| vcpkg | Package manager | `brew install vcpkg` or [install from source](https://vcpkg.io/en/getting-started.html) |
+
+### Build from Source
+
+#### macOS
+
+```bash
+# Set triplet for your architecture
+export VCPKG_TARGET_TRIPLET=arm64-osx   # Apple Silicon
+# export VCPKG_TARGET_TRIPLET=x64-osx   # Intel
+
+# Configure and build
 cmake -B build \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_TOOLCHAIN_FILE=$(brew --prefix vcpkg)/scripts/buildsystems/vcpkg.cmake
 
-# Or use vcpkg from source
-# cmake -B build \
-#   -DCMAKE_BUILD_TYPE=Release \
-#   -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake --build build -j$(nproc)
+```
+
+#### Linux
+
+```bash
+export VCPKG_TARGET_TRIPLET=x64-linux
+
+cmake -B build \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 cmake --build build -j$(nproc)
-./build/pathview
 ```
+
+### Verify Installation
+
+```bash
+./build/pathview --version
+```
+
+---
 
 ## Usage
 
-- Open a slide: `File -> Open Slide...` or `Ctrl+O`
-- Zoom: mouse wheel or trackpad pinch
-- Pan: left mouse drag
-- Reset view: `View -> Reset View`
-- Use the minimap to jump to a region
+### Opening Slides
 
-## Remote Slides (S3)
+| Action | Method |
+|--------|--------|
+| Open local slide | `File → Open Slide...` or `Ctrl+O` |
+| Connect to server | `File → Connect to Server` or `Ctrl+Shift+O` |
 
-PathView can stream slides from S3-compatible storage via [WSIStreamer](https://github.com/PABannier/WSIStreamer), a high-performance tile server. This enables viewing large slides without downloading them locally.
+### Navigation
+
+| Action | Input |
+|--------|-------|
+| Pan | Left mouse drag |
+| Zoom | Mouse wheel or trackpad pinch |
+| Jump to region | Click on minimap |
+| Reset view | `View → Reset View` |
+
+### Loading Polygon Overlays
+
+Load cell segmentation data from Protocol Buffer files:
+
+```
+File → Load Polygons...
+```
+
+Polygons are rendered with class-based coloring and level-of-detail optimization.
+
+---
+
+## Remote Slides
+
+PathView streams slides from S3-compatible storage via [WSIStreamer](https://github.com/PABannier/WSIStreamer), enabling viewing of large slides without local download.
 
 ### Quick Demo
 
@@ -66,87 +144,201 @@ PathView can stream slides from S3-compatible storage via [WSIStreamer](https://
 ./scripts/demo_remote_slide.sh ~/Downloads/sample.svs
 ```
 
-This spins up a local WSIStreamer instance, uploads your slide, and launches PathView.
+This script:
+1. Starts a local MinIO + WSIStreamer instance
+2. Uploads your slide to the local S3 bucket
+3. Launches PathView connected to the server
 
 ### Connecting to a Server
 
-1. `File -> Connect to Server` or `Ctrl+Shift+O`
+1. Open `File → Connect to Server` (`Ctrl+Shift+O`)
 2. Enter the server URL (e.g., `http://localhost:3000`)
-3. Enter auth secret if required
-4. Browse available slides and select one to open
+3. Enter authentication secret if required
+4. Browse and select a slide from the server
 
-### Production Setup
+### Production Deployment
 
-For production deployments, WSIStreamer connects to AWS S3 or any S3-compatible storage (MinIO, GCS, etc.):
+For production environments, deploy WSIStreamer with your S3-compatible storage:
 
 ```bash
-# Run WSIStreamer pointing to your S3 bucket
 docker run -p 3000:3000 \
   -e WSI_S3_BUCKET=my-slides-bucket \
-  -e AWS_ACCESS_KEY_ID=... \
-  -e AWS_SECRET_ACCESS_KEY=... \
+  -e AWS_ACCESS_KEY_ID=<your-access-key> \
+  -e AWS_SECRET_ACCESS_KEY=<your-secret-key> \
+  -e AWS_REGION=us-east-1 \
   wsistreamer/wsi-streamer
 ```
 
 See the [WSIStreamer documentation](external/WSIStreamer/README.md) for configuration options including authentication, caching, and CORS.
 
+---
+
 ## AI Agent Integration
 
-PathView ships an MCP (Model Context Protocol) server for programmatic control, screenshots, and ROI analysis.
+PathView provides an MCP (Model Context Protocol) server for programmatic control by AI agents. The API enables automated tissue analysis workflows including navigation, screenshot capture, and ROI-based cell counting.
+
+### Architecture
+
+```
+┌─────────────┐     MCP/JSON-RPC      ┌─────────────────┐      IPC       ┌─────────────┐
+│  AI Agent   │ ◄──────────────────►  │  MCP Server     │ ◄────────────► │  PathView   │
+│             │     HTTP + SSE        │  (port 9000)    │    TCP/JSON    │  GUI        │
+└─────────────┘                       └─────────────────┘                └─────────────┘
+                                              │
+                                              ▼
+                                      ┌─────────────────┐
+                                      │  HTTP Server    │
+                                      │  (port 8080)    │
+                                      └─────────────────┘
+```
+
+### Starting the MCP Server
 
 ```bash
-# Terminal 1: GUI
+# Terminal 1: Start PathView GUI
 ./build/pathview
 
-# Terminal 2: MCP server
+# Terminal 2: Start MCP server
 ./build/pathview-mcp
 ```
 
-- HTTP+SSE control: `http://127.0.0.1:9000`
-- Snapshot server: `http://127.0.0.1:8080`
+### Endpoints
 
-Full documentation: `docs/AI_AGENT_GUIDE.md`
+| Service | URL | Description |
+|---------|-----|-------------|
+| MCP Server | `http://127.0.0.1:9000` | MCP API (JSON-RPC over HTTP+SSE) |
+| HTTP Server | `http://127.0.0.1:8080` | Snapshot retrieval and MJPEG streaming |
 
-### MCP Tools
+### Available Tools
 
-The MCP server exposes tools across these categories:
+The MCP server exposes 27 tools across 7 categories:
 
-- Session: `agent_hello`
-- Slide: `load_slide`, `get_slide_info`
-- Navigation (requires lock): `nav_lock`, `nav_unlock`, `pan`, `zoom`, `center_on`, `move_camera`, `reset_view`
-- Snapshots: `capture_snapshot`, `/snapshot/{id}`, `/stream?fps=N`
-- Polygons: `load_polygons`, `query_polygons`, `set_polygon_visibility`
-- Annotations/ROI: `create_annotation`, `list_annotations`, `get_annotation`, `delete_annotation`, `compute_roi_metrics`
-- Progress tracking: `create_action_card`, `update_action_card`, `append_action_card_log`, `list_action_cards`, `delete_action_card`
+| Category | Tools | Description |
+|----------|-------|-------------|
+| **Session** | `agent_hello` | Register agent and get session info |
+| **Slide** | `load_slide`, `get_slide_info` | Load and inspect WSI files |
+| **Navigation** | `nav_lock`, `nav_unlock`, `nav_lock_status`, `pan`, `zoom`, `zoom_at_point`, `center_on`, `reset_view`, `move_camera`, `await_move` | Viewport control with animation |
+| **Snapshots** | `capture_snapshot` | Capture viewport as PNG |
+| **Polygons** | `load_polygons`, `query_polygons`, `set_polygon_visibility` | Cell segmentation overlay |
+| **Annotations** | `create_annotation`, `list_annotations`, `get_annotation`, `delete_annotation`, `compute_roi_metrics` | ROI creation and cell counting |
+| **Action Cards** | `create_action_card`, `update_action_card`, `append_action_card_log`, `list_action_cards`, `delete_action_card` | Progress tracking UI |
 
-### MCP Usage
+### Example Workflow
 
-Recommended flow for automation:
+```python
+# 1. Connect and register
+session = await client.call_tool("agent_hello", {
+    "agent_name": "pathology-analyzer",
+    "agent_version": "1.0.0"
+})
 
-1. `agent_hello` to create a session.
-2. `nav_lock` before any navigation calls.
-3. Use `move_camera` + `await_move` for smooth transitions.
-4. `capture_snapshot` for screenshots.
-5. `create_annotation` + `compute_roi_metrics` for ROI analysis.
-6. `nav_unlock` when done.
+# 2. Load resources
+await client.call_tool("load_slide", {"path": "/data/slide.svs"})
+await client.call_tool("load_polygons", {"path": "/data/cells.pb"})
+
+# 3. Acquire navigation lock
+await client.call_tool("nav_lock", {
+    "owner_uuid": "agent-12345",
+    "ttl_seconds": 300
+})
+
+# 4. Navigate to region of interest
+move = await client.call_tool("move_camera", {
+    "center_x": 50000, "center_y": 30000,
+    "zoom": 2.0, "duration_ms": 500
+})
+
+# 5. Wait for animation and capture
+while not (await client.call_tool("await_move", {"token": move["token"]}))["completed"]:
+    await asyncio.sleep(0.05)
+snapshot = await client.call_tool("capture_snapshot", {})
+
+# 6. Analyze region
+annotation = await client.call_tool("create_annotation", {
+    "vertices": [[48000, 28000], [52000, 28000], [52000, 32000], [48000, 32000]],
+    "name": "Tumor ROI"
+})
+print(f"Cell count: {annotation['cell_counts']['total']}")
+
+# 7. Release lock
+await client.call_tool("nav_unlock", {"owner_uuid": "agent-12345"})
+```
+
+### API Documentation
+
+For complete API reference including all parameters, response schemas, and error codes:
+
+- **[API Specification](API_MCP_SPECIFICATIONS.md)** - Full MCP API reference
+- **[AI Agent Guide](docs/AI_AGENT_GUIDE.md)** - Integration guide and tutorials
+
+---
 
 ## Supported Formats
 
-All formats supported by OpenSlide, including:
-- Aperio (.svs, .tif)
-- Hamamatsu (.vms, .vmu, .ndpi)
-- Leica (.scn)
-- MIRAX (.mrxs)
-- Philips (.tiff)
-- Sakura (.svslide)
-- Trestle (.tif)
-- Ventana (.bif, .tif)
-- Generic tiled TIFF
+PathView supports all formats recognized by [OpenSlide](https://openslide.org/) for local slides:
+
+| Vendor | Extensions |
+|--------|------------|
+| Aperio | `.svs`, `.tif` |
+| Hamamatsu | `.vms`, `.vmu`, `.ndpi` |
+| Leica | `.scn` |
+| MIRAX | `.mrxs` |
+| Philips | `.tiff` |
+| Sakura | `.svslide` |
+| Trestle | `.tif` |
+| Ventana | `.bif`, `.tif` |
+| Generic | Tiled TIFF |
+
+For streaming from an S3 bucket, PathView supports all formats recognized by [WSI Streamer](https://github.com/PABannier/WSIStreamer/):
+
+| Vendor | Extensions |
+|--------|------------|
+| Aperio | `.svs`, `.tif` |
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [API Specification](API_MCP_SPECIFICATIONS.md) | Complete MCP API reference with types, parameters, and examples |
+| [AI Agent Guide](docs/AI_AGENT_GUIDE.md) | Integration guide for AI agent developers |
+| [Architecture Guide](AGENTS.md) | Internal architecture and development patterns |
+
+---
 
 ## Contributing
 
-Issues and pull requests are welcome. Please include platform details and repro steps for bugs.
+Contributions are welcome. Please follow these guidelines:
+
+1. **Issues**: Include platform details, PathView version, and reproduction steps
+2. **Pull Requests**: Follow existing code style, include tests where applicable
+3. **Feature Requests**: Open an issue to discuss before implementing
+
+### Development Build
+
+```bash
+cmake -B build-debug \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_TOOLCHAIN_FILE=$(brew --prefix vcpkg)/scripts/buildsystems/vcpkg.cmake
+
+cmake --build build-debug
+```
+
+### Running Tests
+
+```bash
+./build/test/unit_tests
+```
+
+---
 
 ## License
 
-MIT
+MIT License. See [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">
+  <sub>Built for digital pathology research and AI-assisted tissue analysis.</sub>
+</p>
