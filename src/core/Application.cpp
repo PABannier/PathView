@@ -11,6 +11,7 @@
 #include "PNGEncoder.h"
 #include "ScreenshotBuffer.h"
 #include "UUID.h"
+#include "Base64.h"
 #include "../api/ipc/IPCServer.h"
 #include "../api/ipc/IPCMessage.h"
 #include "../remote/WsiStreamClient.h"
@@ -1692,45 +1693,7 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             screenshotBuffer_->MarkAsRead();
 
             // Return PNG data as base64 for MCP server to store
-            // Convert to base64
-            static const char* base64_chars =
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                "abcdefghijklmnopqrstuvwxyz"
-                "0123456789+/";
-
-            std::string base64;
-            int i = 0;
-            unsigned char char_array_3[3];
-            unsigned char char_array_4[4];
-
-            for (size_t idx = 0; idx < pngData.size(); idx++) {
-                char_array_3[i++] = pngData[idx];
-                if (i == 3) {
-                    char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-                    char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-                    char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-                    char_array_4[3] = char_array_3[2] & 0x3f;
-
-                    for(i = 0; i < 4; i++)
-                        base64 += base64_chars[char_array_4[i]];
-                    i = 0;
-                }
-            }
-
-            if (i) {
-                for(int j = i; j < 3; j++)
-                    char_array_3[j] = '\0';
-
-                char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-                char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-                char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-
-                for (int j = 0; j < i + 1; j++)
-                    base64 += base64_chars[char_array_4[j]];
-
-                while(i++ < 3)
-                    base64 += '=';
-            }
+            std::string base64 = pathview::util::Base64Encode(pngData);
 
             return json{
                 {"png_data", base64},
