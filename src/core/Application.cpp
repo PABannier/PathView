@@ -70,6 +70,22 @@ void Application::CheckLockExpiry() {
     }
 }
 
+void Application::RequireViewportLoaded() const {
+    if (!viewport_) {
+        throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
+    }
+}
+
+void Application::RequireNavigationOwnership() const {
+    socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
+    if (!IsNavigationOwnedByClient(currentClientFd)) {
+        throw std::runtime_error(
+            std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
+            ". Use nav_lock tool to acquire control."
+        );
+    }
+}
+
 bool Application::Initialize() {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -1224,18 +1240,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
     try {
         // Viewport commands
         if (method == "viewport.pan") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             double dx = params.at("dx").get<double>();
             double dy = params.at("dy").get<double>();
@@ -1248,18 +1254,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "viewport.zoom") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             double delta = params.at("delta").get<double>();
 
@@ -1278,18 +1274,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "viewport.zoom_at_point") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             int screenX = params.at("screen_x").get<int>();
             int screenY = params.at("screen_y").get<int>();
@@ -1306,18 +1292,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "viewport.center_on") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             double x = params.at("x").get<double>();
             double y = params.at("y").get<double>();
@@ -1332,18 +1308,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "viewport.reset") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             viewport_->ResetView(AnimationMode::SMOOTH);
 
@@ -1356,18 +1322,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "viewport.move") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             // Parse parameters
             double centerX = params.at("center_x").get<double>();
