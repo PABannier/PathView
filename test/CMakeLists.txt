@@ -28,7 +28,6 @@ if(NOT TARGET protobuf::libprotobuf AND NOT TARGET Protobuf::Protobuf)
     find_package(Protobuf REQUIRED)
 endif()
 
-find_package(absl CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(simdjson CONFIG REQUIRED)
 
@@ -112,14 +111,8 @@ endif()
 # Link only the necessary core components
 target_link_libraries(unit_tests PRIVATE
     GTest::gtest
-    GTest::gtest_main
-    GTest::gmock
     ${PATHVIEW_OPENSLIDE_TARGET}
     ${PATHVIEW_PROTOBUF_TARGET}
-    absl::log
-    absl::log_internal_check_op
-    absl::log_internal_message
-    absl::hash
     PNG::PNG
     simdjson::simdjson
 )
@@ -231,7 +224,6 @@ if(BUILD_INTEGRATION_TESTS)
     )
 
     target_link_libraries(wsi_streamer_integration_tests PRIVATE
-        GTest::gtest
         GTest::gtest_main
         simdjson::simdjson
         OpenSSL::SSL
