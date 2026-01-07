@@ -30,9 +30,6 @@ public:
     Viewport(int windowWidth, int windowHeight, int64_t slideWidth, int64_t slideHeight);
     ~Viewport() = default;
 
-    // Friend declaration to allow Application access to animation_ and ClampToBounds()
-    friend class Application;
-
     // Window size management
     void SetWindowSize(int width, int height);
     int GetWindowWidth() const { return windowWidth_; }
@@ -57,6 +54,10 @@ public:
 
     // Animation update (called each frame)
     void UpdateAnimation(double currentTimeMs);
+    bool IsAnimationActive() const { return animation_.IsActive(); }
+    void StartAnimationAt(Vec2 targetPos, double targetZoom,
+                          AnimationMode mode, double startTimeMs, double durationMs);
+    void ClampToBounds();
 
     // Coordinate transformations
     Vec2 ScreenToSlide(Vec2 screenPos) const;
@@ -72,7 +73,6 @@ public:
     double GetMaxZoom() const { return maxZoom_; }
 
 private:
-    void ClampToBounds();
     void CalculateZoomLimits();
 
     // Window dimensions

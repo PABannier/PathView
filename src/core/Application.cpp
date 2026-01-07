@@ -424,7 +424,7 @@ void Application::Update() {
         // Track animation completion for tokens
         for (auto& [key, token] : activeAnimations_) {
             if (!token.completed && !token.aborted) {
-                if (!viewport_->animation_.IsActive()) {
+                if (!viewport_->IsAnimationActive()) {
                     token.completed = true;
                     token.finalPosition = viewport_->GetPosition();
                     token.finalZoom = viewport_->GetZoom();
@@ -1398,8 +1398,7 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
 
             // Start animation using Animation::StartAt
             double currentTime = static_cast<double>(SDL_GetTicks());
-            viewport_->animation_.StartAt(
-                viewport_->GetPosition(), viewport_->GetZoom(),
+            viewport_->StartAnimationAt(
                 targetPos, zoom,
                 AnimationMode::SMOOTH,
                 currentTime,
