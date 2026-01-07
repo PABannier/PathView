@@ -1,4 +1,5 @@
 #include "PolygonLoader.h"
+#include "PolygonColorPalette.h"
 #include <iostream>
 #include <set>
 #include <map>
@@ -33,28 +34,14 @@ static const std::map<std::string, SDL_Color> CELL_TYPE_COLORS = {
     {"Other",              {255, 255, 255, 255}}    // White
 };
 
-// Fallback colors for unmapped cell types
-static const SDL_Color FALLBACK_COLORS[] = {
-    {255, 0, 0, 255},      // Red
-    {0, 255, 0, 255},      // Green
-    {0, 0, 255, 255},      // Blue
-    {255, 255, 0, 255},    // Yellow
-    {255, 0, 255, 255},    // Magenta
-    {0, 255, 255, 255},    // Cyan
-    {255, 128, 0, 255},    // Orange
-    {128, 0, 255, 255},    // Purple
-    {255, 192, 203, 255},  // Pink
-    {128, 128, 128, 255}   // Gray
-};
-
-static constexpr size_t NUM_FALLBACK_COLORS = sizeof(FALLBACK_COLORS) / sizeof(FALLBACK_COLORS[0]);
 
 void PolygonLoader::GenerateDefaultColors(int numClasses,
                                           std::map<int, SDL_Color>& outColors) {
     // This function is now a fallback - primary coloring uses class names
     outColors.clear();
     for (int i = 0; i < numClasses; ++i) {
-        outColors[i] = FALLBACK_COLORS[i % NUM_FALLBACK_COLORS];
+        outColors[i] =
+            pathview::polygons::kDefaultPalette[i % pathview::polygons::kDefaultPalette.size()];
     }
 }
 
@@ -79,7 +66,9 @@ void PolygonLoader::GenerateColorsFromClassNames(
                       << (int)colorIt->second.b << ")" << std::endl;
         } else {
             // Use fallback color for unknown cell types
-            outColors[classId] = FALLBACK_COLORS[fallbackIndex % NUM_FALLBACK_COLORS];
+            outColors[classId] = pathview::polygons::kDefaultPalette[
+                fallbackIndex % pathview::polygons::kDefaultPalette.size()
+            ];
             std::cout << "  Unknown cell type '" << className << "' (ID " << classId
                       << "), using fallback color" << std::endl;
             ++fallbackIndex;
