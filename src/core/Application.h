@@ -82,7 +82,6 @@ private:
     void Update();
     void Render();
     void RenderUI();
-    void RenderSlidePreview();
 
     void OpenFileDialog();
     void LoadSlide(const std::string& path);
@@ -152,9 +151,6 @@ private:
 
     // IPC server for remote control
     std::unique_ptr<pathview::ipc::IPCServer> ipcServer_;
-
-    // Preview texture (Phase 2 simple display)
-    SDL_Texture* previewTexture_;
 
     // Current slide path
     std::string currentSlidePath_;

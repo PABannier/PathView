@@ -25,7 +25,6 @@
 #include <nfd.hpp>
 #include <iostream>
 #include <algorithm>
-#include <filesystem>
 #include <limits>
 #include <cfloat>
 #include <thread>
@@ -43,7 +42,6 @@ Application::Application()
     , windowWidth_(1280)
     , windowHeight_(720)
     , dpiScale_(1.0f)
-    , previewTexture_(nullptr)
     , sidebarVisible_(true)
     , navLock_(std::make_unique<NavigationLock>())
     , screenshotBuffer_(std::make_unique<pathview::ScreenshotBuffer>())
@@ -271,11 +269,6 @@ void Application::Shutdown() {
     viewport_.reset();
     slideLoader_.reset();
 
-    if (previewTexture_) {
-        SDL_DestroyTexture(previewTexture_);
-        previewTexture_ = nullptr;
-    }
-
     // Cleanup ImGui (must happen while renderer is still valid)
     if (ImGui::GetCurrentContext()) {
         ImGui_ImplSDLRenderer2_Shutdown();
@@ -496,10 +489,6 @@ void Application::Render() {
     if ((slideLoader_ || remoteSlideSource_) && viewport_ && slideRenderer_) {
         slideRenderer_->Render(*viewport_);
     }
-    // Fallback to preview for slides loaded in Phase 2 without viewport
-    else if (slideLoader_ && previewTexture_) {
-        RenderSlidePreview();
-    }
 
     // Render polygon overlays
     if (polygonOverlay_ && viewport_ && polygonOverlay_->IsVisible()) {
@@ -519,12 +508,6 @@ void Application::Render() {
     // Render minimap overlay (local or remote slides)
     if ((slideLoader_ || remoteSlideSource_) && viewport_ && minimap_) {
         minimap_->Render(*viewport_, sidebarVisible_, sidebarVisible_ ? SIDEBAR_WIDTH : 0.0f);
-    }
-
-    // Capture screenshot if requested
-    if (screenshotBuffer_->IsCaptureRequested()) {
-        CaptureScreenshot();
-        screenshotBuffer_->ClearCaptureRequest();
     }
 
     // Render ImGui
@@ -605,11 +588,6 @@ void Application::OpenFileDialog() {
 
 void Application::ClearSlideState() {
     isPanning_ = false;
-
-    if (previewTexture_) {
-        SDL_DestroyTexture(previewTexture_);
-        previewTexture_ = nullptr;
-    }
 
     slideRenderer_.reset();
     minimap_.reset();
@@ -733,32 +711,6 @@ bool Application::LoadPolygons(const std::string& path) {
     }
     std::cerr << "Failed to load polygons from: " << path << std::endl;
     return false;
-}
-
-void Application::RenderSlidePreview() {
-    if (!previewTexture_) {
-        return;
-    }
-
-    // Get texture dimensions
-    int texWidth, texHeight;
-    SDL_QueryTexture(previewTexture_, nullptr, nullptr, &texWidth, &texHeight);
-
-    // Calculate destination rectangle to fit the preview in the window
-    // while maintaining aspect ratio
-    float scaleX = static_cast<float>(windowWidth_) / texWidth;
-    float scaleY = static_cast<float>(windowHeight_) / texHeight;
-    float scale = std::min(scaleX, scaleY) * 0.9f; // 90% of window size
-
-    int dstWidth = static_cast<int>(texWidth * scale);
-    int dstHeight = static_cast<int>(texHeight * scale);
-    int dstX = (windowWidth_ - dstWidth) / 2;
-    int dstY = (windowHeight_ - dstHeight) / 2;
-
-    SDL_Rect dstRect = {dstX, dstY, dstWidth, dstHeight};
-
-    // Render the texture
-    SDL_RenderCopy(renderer_, previewTexture_, nullptr, &dstRect);
 }
 
 void Application::RenderNavigationLockIndicator() {
