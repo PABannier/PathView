@@ -1,7 +1,5 @@
 #include "SnapshotManager.h"
-#include <random>
-#include <sstream>
-#include <iomanip>
+#include "UUID.h"
 #include <algorithm>
 
 namespace pathview {
@@ -43,7 +41,7 @@ std::string SnapshotManager::AddSnapshot(const std::vector<uint8_t>& pngData, in
     std::lock_guard<std::mutex> lock(mutex_);
 
     // Generate UUID
-    std::string id = GenerateUUID();
+    std::string id = pathview::util::GenerateUUID();
 
     // Evict oldest if cache is full
     while (cache_.size() >= maxSnapshots_) {
@@ -116,36 +114,6 @@ void SnapshotManager::EvictOldest() {
     std::string oldestId = lruList_.back();
     lruList_.pop_back();
     cache_.erase(oldestId);
-}
-
-std::string SnapshotManager::GenerateUUID() {
-    // Simple UUID v4 generation
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 255);
-
-    std::ostringstream oss;
-    oss << std::hex << std::setfill('0');
-
-    // Generate 16 random bytes
-    for (int i = 0; i < 16; i++) {
-        if (i == 4 || i == 6 || i == 8 || i == 10) {
-            oss << '-';
-        }
-
-        int byte = dis(gen);
-
-        // Set version (4) and variant bits
-        if (i == 6) {
-            byte = (byte & 0x0F) | 0x40;  // Version 4
-        } else if (i == 8) {
-            byte = (byte & 0x3F) | 0x80;  // Variant
-        }
-
-        oss << std::setw(2) << byte;
-    }
-
-    return oss.str();
 }
 
 void SnapshotManager::AddStreamFrame(const std::string& id) {

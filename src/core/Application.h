@@ -113,8 +113,6 @@ private:
     bool IsNavigationLocked() const;
     bool IsNavigationOwnedByClient(socket_t clientFd) const;
     void CheckLockExpiry();
-    std::string GenerateUUID() const;
-
     // Screenshot capture
     void CaptureScreenshot();
     std::vector<uint8_t> EncodePNG(const std::vector<uint8_t>& pixels, int width, int height);
