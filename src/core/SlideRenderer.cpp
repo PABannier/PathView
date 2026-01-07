@@ -72,10 +72,6 @@ double SlideRenderer::GetCacheHitRate() const {
     return tileCache_ ? tileCache_->GetHitRate() : 0.0;
 }
 
-size_t SlideRenderer::GetPendingTileCount() const {
-    return threadPool_ ? threadPool_->GetPendingCount() : 0;
-}
-
 int32_t SlideRenderer::SelectLevel(double zoom) const {
     if (zoom <= 0.0) {
         return 0;

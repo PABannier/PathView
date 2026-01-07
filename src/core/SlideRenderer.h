@@ -31,9 +31,6 @@ public:
     size_t GetCacheMemoryUsage() const;
     double GetCacheHitRate() const;
 
-    // Get thread pool statistics
-    size_t GetPendingTileCount() const;
-
 private:
     int32_t SelectLevel(double zoom) const;
     void RenderTiled(const Viewport& viewport, int32_t level);
