@@ -1,6 +1,4 @@
 #include "RemoteSlideSource.h"
-#include "../core/SlideLoader.h"  // For LevelDimensions
-
 // stb_image for JPEG decoding (implementation in this file)
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_JPEG  // Only need JPEG support

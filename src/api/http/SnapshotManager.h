@@ -74,7 +74,6 @@ public:
 
 private:
     void EvictOldest();
-    std::string GenerateUUID();
 
     std::map<std::string, Snapshot> cache_;
     std::list<std::string> lruList_;  // Most recent at front

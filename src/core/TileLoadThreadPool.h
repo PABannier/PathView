@@ -41,7 +41,6 @@ public:
 
     // Statistics
     size_t GetPendingCount() const;
-    size_t GetActiveCount() const { return activeCount_.load(); }
 
 private:
     void WorkerLoop();

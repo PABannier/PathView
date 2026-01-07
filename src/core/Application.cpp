@@ -10,6 +10,8 @@
 #include "UIStyle.h"
 #include "PNGEncoder.h"
 #include "ScreenshotBuffer.h"
+#include "UUID.h"
+#include "Base64.h"
 #include "../api/ipc/IPCServer.h"
 #include "../api/ipc/IPCMessage.h"
 #include "../remote/WsiStreamClient.h"
@@ -25,13 +27,9 @@
 #include <nfd.hpp>
 #include <iostream>
 #include <algorithm>
-#include <filesystem>
 #include <limits>
 #include <cfloat>
 #include <thread>
-#include <random>
-#include <sstream>
-#include <iomanip>
 
 Application::Application()
     : window_(nullptr)
@@ -43,7 +41,6 @@ Application::Application()
     , windowWidth_(1280)
     , windowHeight_(720)
     , dpiScale_(1.0f)
-    , previewTexture_(nullptr)
     , sidebarVisible_(true)
     , navLock_(std::make_unique<NavigationLock>())
     , screenshotBuffer_(std::make_unique<pathview::ScreenshotBuffer>())
@@ -73,27 +70,20 @@ void Application::CheckLockExpiry() {
     }
 }
 
-std::string Application::GenerateUUID() const {
-    // Cross-platform UUID v4 generation using <random>
-    static std::random_device rd;
-    static std::mt19937_64 gen(rd());
-    static std::uniform_int_distribution<uint64_t> dis;
-    
-    uint64_t ab = dis(gen);
-    uint64_t cd = dis(gen);
-    
-    // Set UUID version 4 and variant bits
-    ab = (ab & 0xFFFFFFFFFFFF0FFFULL) | 0x0000000000004000ULL;
-    cd = (cd & 0x3FFFFFFFFFFFFFFFULL) | 0x8000000000000000ULL;
-    
-    std::ostringstream ss;
-    ss << std::hex << std::setfill('0')
-       << std::setw(8) << (ab >> 32) << "-"
-       << std::setw(4) << ((ab >> 16) & 0xFFFF) << "-"
-       << std::setw(4) << (ab & 0xFFFF) << "-"
-       << std::setw(4) << (cd >> 48) << "-"
-       << std::setw(12) << (cd & 0xFFFFFFFFFFFFULL);
-    return ss.str();
+void Application::RequireViewportLoaded() const {
+    if (!viewport_) {
+        throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
+    }
+}
+
+void Application::RequireNavigationOwnership() const {
+    socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
+    if (!IsNavigationOwnedByClient(currentClientFd)) {
+        throw std::runtime_error(
+            std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
+            ". Use nav_lock tool to acquire control."
+        );
+    }
 }
 
 bool Application::Initialize() {
@@ -270,11 +260,6 @@ void Application::Shutdown() {
     textureManager_.reset();
     viewport_.reset();
     slideLoader_.reset();
-
-    if (previewTexture_) {
-        SDL_DestroyTexture(previewTexture_);
-        previewTexture_ = nullptr;
-    }
 
     // Cleanup ImGui (must happen while renderer is still valid)
     if (ImGui::GetCurrentContext()) {
@@ -456,7 +441,7 @@ void Application::Update() {
         // Track animation completion for tokens
         for (auto& [key, token] : activeAnimations_) {
             if (!token.completed && !token.aborted) {
-                if (!viewport_->animation_.IsActive()) {
+                if (!viewport_->IsAnimationActive()) {
                     token.completed = true;
                     token.finalPosition = viewport_->GetPosition();
                     token.finalZoom = viewport_->GetZoom();
@@ -496,10 +481,6 @@ void Application::Render() {
     if ((slideLoader_ || remoteSlideSource_) && viewport_ && slideRenderer_) {
         slideRenderer_->Render(*viewport_);
     }
-    // Fallback to preview for slides loaded in Phase 2 without viewport
-    else if (slideLoader_ && previewTexture_) {
-        RenderSlidePreview();
-    }
 
     // Render polygon overlays
     if (polygonOverlay_ && viewport_ && polygonOverlay_->IsVisible()) {
@@ -519,12 +500,6 @@ void Application::Render() {
     // Render minimap overlay (local or remote slides)
     if ((slideLoader_ || remoteSlideSource_) && viewport_ && minimap_) {
         minimap_->Render(*viewport_, sidebarVisible_, sidebarVisible_ ? SIDEBAR_WIDTH : 0.0f);
-    }
-
-    // Capture screenshot if requested
-    if (screenshotBuffer_->IsCaptureRequested()) {
-        CaptureScreenshot();
-        screenshotBuffer_->ClearCaptureRequest();
     }
 
     // Render ImGui
@@ -605,11 +580,6 @@ void Application::OpenFileDialog() {
 
 void Application::ClearSlideState() {
     isPanning_ = false;
-
-    if (previewTexture_) {
-        SDL_DestroyTexture(previewTexture_);
-        previewTexture_ = nullptr;
-    }
 
     slideRenderer_.reset();
     minimap_.reset();
@@ -733,32 +703,6 @@ bool Application::LoadPolygons(const std::string& path) {
     }
     std::cerr << "Failed to load polygons from: " << path << std::endl;
     return false;
-}
-
-void Application::RenderSlidePreview() {
-    if (!previewTexture_) {
-        return;
-    }
-
-    // Get texture dimensions
-    int texWidth, texHeight;
-    SDL_QueryTexture(previewTexture_, nullptr, nullptr, &texWidth, &texHeight);
-
-    // Calculate destination rectangle to fit the preview in the window
-    // while maintaining aspect ratio
-    float scaleX = static_cast<float>(windowWidth_) / texWidth;
-    float scaleY = static_cast<float>(windowHeight_) / texHeight;
-    float scale = std::min(scaleX, scaleY) * 0.9f; // 90% of window size
-
-    int dstWidth = static_cast<int>(texWidth * scale);
-    int dstHeight = static_cast<int>(texHeight * scale);
-    int dstX = (windowWidth_ - dstWidth) / 2;
-    int dstY = (windowHeight_ - dstHeight) / 2;
-
-    SDL_Rect dstRect = {dstX, dstY, dstWidth, dstHeight};
-
-    // Render the texture
-    SDL_RenderCopy(renderer_, previewTexture_, nullptr, &dstRect);
 }
 
 void Application::RenderNavigationLockIndicator() {
@@ -1296,18 +1240,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
     try {
         // Viewport commands
         if (method == "viewport.pan") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             double dx = params.at("dx").get<double>();
             double dy = params.at("dy").get<double>();
@@ -1320,18 +1254,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "viewport.zoom") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             double delta = params.at("delta").get<double>();
 
@@ -1350,18 +1274,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "viewport.zoom_at_point") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             int screenX = params.at("screen_x").get<int>();
             int screenY = params.at("screen_y").get<int>();
@@ -1378,18 +1292,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "viewport.center_on") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             double x = params.at("x").get<double>();
             double y = params.at("y").get<double>();
@@ -1404,18 +1308,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "viewport.reset") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             viewport_->ResetView(AnimationMode::SMOOTH);
 
@@ -1428,18 +1322,8 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             };
         }
         else if (method == "viewport.move") {
-            if (!viewport_) {
-                throw std::runtime_error("No slide loaded. Use load_slide tool to load a whole-slide image first.");
-            }
-
-            // Check navigation lock
-            socket_t currentClientFd = ipcServer_ ? ipcServer_->GetCurrentClientFd() : INVALID_SOCKET_VALUE;
-            if (!IsNavigationOwnedByClient(currentClientFd)) {
-                throw std::runtime_error(
-                    std::string("Navigation locked by ") + navLock_->GetOwnerUUID() +
-                    ". Use nav_lock tool to acquire control."
-                );
-            }
+            RequireViewportLoaded();
+            RequireNavigationOwnership();
 
             // Parse parameters
             double centerX = params.at("center_x").get<double>();
@@ -1467,12 +1351,11 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
                            centerY - viewportHeight / 2.0);
 
             // Generate token
-            std::string token = GenerateUUID();
+            std::string token = pathview::util::GenerateUUID();
 
             // Start animation using Animation::StartAt
             double currentTime = static_cast<double>(SDL_GetTicks());
-            viewport_->animation_.StartAt(
-                viewport_->GetPosition(), viewport_->GetZoom(),
+            viewport_->StartAnimationAt(
                 targetPos, zoom,
                 AnimationMode::SMOOTH,
                 currentTime,
@@ -1766,45 +1649,7 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             screenshotBuffer_->MarkAsRead();
 
             // Return PNG data as base64 for MCP server to store
-            // Convert to base64
-            static const char* base64_chars =
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                "abcdefghijklmnopqrstuvwxyz"
-                "0123456789+/";
-
-            std::string base64;
-            int i = 0;
-            unsigned char char_array_3[3];
-            unsigned char char_array_4[4];
-
-            for (size_t idx = 0; idx < pngData.size(); idx++) {
-                char_array_3[i++] = pngData[idx];
-                if (i == 3) {
-                    char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-                    char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-                    char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-                    char_array_4[3] = char_array_3[2] & 0x3f;
-
-                    for(i = 0; i < 4; i++)
-                        base64 += base64_chars[char_array_4[i]];
-                    i = 0;
-                }
-            }
-
-            if (i) {
-                for(int j = i; j < 3; j++)
-                    char_array_3[j] = '\0';
-
-                char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-                char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-                char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-
-                for (int j = 0; j < i + 1; j++)
-                    base64 += base64_chars[char_array_4[j]];
-
-                while(i++ < 3)
-                    base64 += '=';
-            }
+            std::string base64 = pathview::util::Base64Encode(pngData);
 
             return json{
                 {"png_data", base64},
@@ -2082,7 +1927,7 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             std::string ownerUUID = params.value("owner_uuid", "");
 
             // Generate UUID
-            std::string cardId = GenerateUUID();
+            std::string cardId = pathview::util::GenerateUUID();
 
             // Create card
             pathview::ActionCard card(cardId, title);

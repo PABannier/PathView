@@ -39,7 +39,7 @@ The PathView MCP API enables programmatic control of the PathView digital pathol
 
 ```
 ┌─────────────┐     MCP/JSON-RPC      ┌─────────────────┐      IPC       ┌─────────────┐
-│  AI Agent   │ ◄──────────────────► │  MCP Server     │ ◄────────────► │  PathView   │
+│  AI Agent   │ ◄──────────────────►  │  MCP Server     │ ◄────────────► │  PathView   │
 │             │     HTTP + SSE        │  (port 9000)    │    TCP/JSON    │  GUI        │
 └─────────────┘                       └─────────────────┘                └─────────────┘
                                               │

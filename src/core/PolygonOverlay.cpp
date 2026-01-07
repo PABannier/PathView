@@ -3,26 +3,11 @@
 #include "PolygonLoaderFactory.h"
 #include "PolygonIndex.h"
 #include "PolygonTriangulator.h"
+#include "PolygonColorPalette.h"
 #include "Viewport.h"
 #include <iostream>
 #include <set>
 #include <algorithm>
-
-// Default color palette for < 10 classes
-static const SDL_Color DEFAULT_COLORS[] = {
-    {255, 0, 0, 255},      // Red
-    {0, 255, 0, 255},      // Green
-    {0, 0, 255, 255},      // Blue
-    {255, 255, 0, 255},    // Yellow
-    {255, 0, 255, 255},    // Magenta
-    {0, 255, 255, 255},    // Cyan
-    {255, 128, 0, 255},    // Orange
-    {128, 0, 255, 255},    // Purple
-    {255, 192, 203, 255},  // Pink
-    {128, 128, 128, 255}   // Gray
-};
-
-static constexpr size_t NUM_DEFAULT_COLORS = sizeof(DEFAULT_COLORS) / sizeof(DEFAULT_COLORS[0]);
 
 PolygonOverlay::PolygonOverlay(SDL_Renderer* renderer)
     : renderer_(renderer)
@@ -95,6 +80,7 @@ void PolygonOverlay::Render(const Viewport& viewport) {
     // Get visible region for culling
     Rect visibleRegion = viewport.GetVisibleRegion();
 
+#if !defined(NDEBUG)
     // Debug output (print once per 60 frames to avoid spam)
     static int frameCount = 0;
     if (frameCount++ % 60 == 0) {
@@ -107,6 +93,7 @@ void PolygonOverlay::Render(const Viewport& viewport) {
                       << ", " << polygons_[0].boundingBox.width << ", " << polygons_[0].boundingBox.height << "]" << std::endl;
         }
     }
+#endif
 
     // Query spatial index for visible polygons
     std::vector<Polygon*> visiblePolygons;
@@ -139,9 +126,11 @@ void PolygonOverlay::Render(const Viewport& viewport) {
 
     visiblePolygons = std::move(lodFilteredPolygons);
 
+#if !defined(NDEBUG)
     if (frameCount % 60 == 1) {
         std::cout << "[PolygonOverlay] Visible polygons: " << visiblePolygons.size() << std::endl;
     }
+#endif
 
     if (visiblePolygons.empty()) {
         return;
@@ -343,7 +332,9 @@ SDL_Color PolygonOverlay::GetClassColor(int classId) const {
     }
 
     // Return default color if not found
-    return DEFAULT_COLORS[classId % NUM_DEFAULT_COLORS];
+    return pathview::polygons::kDefaultPalette[
+        classId % pathview::polygons::kDefaultPalette.size()
+    ];
 }
 
 std::string PolygonOverlay::GetClassName(int classId) const {
@@ -367,7 +358,8 @@ void PolygonOverlay::InitializeDefaultColors() {
 
     size_t colorIndex = 0;
     for (int classId : uniqueClasses) {
-        classColors_[classId] = DEFAULT_COLORS[colorIndex % NUM_DEFAULT_COLORS];
+        classColors_[classId] =
+            pathview::polygons::kDefaultPalette[colorIndex % pathview::polygons::kDefaultPalette.size()];
         ++colorIndex;
     }
 }

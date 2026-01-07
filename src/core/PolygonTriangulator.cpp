@@ -133,10 +133,6 @@ bool PolygonTriangulator::PointInTriangle(const Vec2& p,
     return !(hasNeg && hasPos);  // Point is inside if all same sign
 }
 
-double PolygonTriangulator::Cross(const Vec2& a, const Vec2& b) {
-    return a.x * b.y - a.y * b.x;
-}
-
 double PolygonTriangulator::SignedArea(const Vec2& a, const Vec2& b, const Vec2& c) {
     return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 }

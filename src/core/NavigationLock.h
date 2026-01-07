@@ -2,19 +2,7 @@
 
 #include <string>
 #include <chrono>
-
-// Cross-platform socket type
-#ifdef _WIN32
-    #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN
-    #endif
-    #include <winsock2.h>
-    using socket_t = SOCKET;
-    #define INVALID_SOCKET_VALUE INVALID_SOCKET
-#else
-    using socket_t = int;
-    #define INVALID_SOCKET_VALUE (-1)
-#endif
+#include "SocketTypes.h"
 
 /**
  * Navigation lock state

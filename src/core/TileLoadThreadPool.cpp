@@ -1,6 +1,5 @@
 #include "TileLoadThreadPool.h"
 #include "ISlideSource.h"
-#include "SlideLoader.h"  // For LevelDimensions
 #include "TileConstants.h"
 #include <iostream>
 

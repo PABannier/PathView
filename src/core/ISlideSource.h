@@ -2,8 +2,7 @@
 
 #include <string>
 #include <cstdint>
-
-struct LevelDimensions;
+#include "SlideTypes.h"
 
 class ISlideSource {
 public:

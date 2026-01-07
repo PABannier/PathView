@@ -1,13 +1,6 @@
 #include "TextureManager.h"
 #include "TileCache.h"
 #include <iostream>
-#include <sstream>
-
-std::string TileKey::ToString() const {
-    std::ostringstream oss;
-    oss << "L" << level << "_X" << tileX << "_Y" << tileY;
-    return oss.str();
-}
 
 TextureManager::TextureManager(SDL_Renderer* renderer)
     : renderer_(renderer)

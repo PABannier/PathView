@@ -1,5 +1,4 @@
 #include "Animation.h"
-#include "Viewport.h"  // For Vec2 definition
 #include <SDL_timer.h>
 
 // Ease-in-out cubic interpolation

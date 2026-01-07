@@ -6,25 +6,7 @@ ScreenshotBuffer::ScreenshotBuffer()
     : width_(0)
     , height_(0)
     , ready_(false)
-    , captureRequested_(false)
 {
-}
-
-void ScreenshotBuffer::RequestCapture() {
-    captureRequested_ = true;
-}
-
-bool ScreenshotBuffer::IsCaptureRequested() const {
-    return captureRequested_;
-}
-
-void ScreenshotBuffer::ClearCaptureRequest() {
-    captureRequested_ = false;
-}
-
-bool ScreenshotBuffer::IsReady() const {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return ready_;
 }
 
 void ScreenshotBuffer::StoreCapture(const std::vector<uint8_t>& pixels, int width, int height) {

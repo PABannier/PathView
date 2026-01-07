@@ -6,19 +6,7 @@
 #include <chrono>
 #include <vector>
 #include <mutex>
-
-// Cross-platform socket type (must be defined before NavigationLock.h if not included)
-#ifdef _WIN32
-    #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN
-    #endif
-    #include <winsock2.h>
-    using socket_t = SOCKET;
-    #define INVALID_SOCKET_VALUE INVALID_SOCKET
-#else
-    using socket_t = int;
-    #define INVALID_SOCKET_VALUE (-1)
-#endif
+#include "SocketTypes.h"
 
 class ISlideSource;
 class SlideLoader;
@@ -82,7 +70,6 @@ private:
     void Update();
     void Render();
     void RenderUI();
-    void RenderSlidePreview();
 
     void OpenFileDialog();
     void LoadSlide(const std::string& path);
@@ -114,8 +101,8 @@ private:
     bool IsNavigationLocked() const;
     bool IsNavigationOwnedByClient(socket_t clientFd) const;
     void CheckLockExpiry();
-    std::string GenerateUUID() const;
-
+    void RequireViewportLoaded() const;
+    void RequireNavigationOwnership() const;
     // Screenshot capture
     void CaptureScreenshot();
     std::vector<uint8_t> EncodePNG(const std::vector<uint8_t>& pixels, int width, int height);
@@ -152,9 +139,6 @@ private:
 
     // IPC server for remote control
     std::unique_ptr<pathview::ipc::IPCServer> ipcServer_;
-
-    // Preview texture (Phase 2 simple display)
-    SDL_Texture* previewTexture_;
 
     // Current slide path
     std::string currentSlidePath_;

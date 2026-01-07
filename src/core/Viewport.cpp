@@ -140,6 +140,11 @@ void Viewport::ResetView(AnimationMode mode) {
     animation_.Start(position_, zoom_, targetPos, targetZoom, mode, 500.0);
 }
 
+void Viewport::StartAnimationAt(Vec2 targetPos, double targetZoom,
+                                AnimationMode mode, double startTimeMs, double durationMs) {
+    animation_.StartAt(position_, zoom_, targetPos, targetZoom, mode, startTimeMs, durationMs);
+}
+
 Vec2 Viewport::ScreenToSlide(Vec2 screenPos) const {
     // Screen coordinates → Slide coordinates
     Vec2 localScreenPos(

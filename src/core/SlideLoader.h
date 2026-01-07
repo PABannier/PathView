@@ -1,16 +1,12 @@
 #pragma once
 
 #include "ISlideSource.h"
+#include "SlideTypes.h"
 #include <string>
 #include <vector>
 #include <cstdint>
 #include <cstddef>
 #include <openslide/openslide.h>
-
-struct LevelDimensions {
-    int64_t width;
-    int64_t height;
-};
 
 class SlideLoader : public ISlideSource {
 public:
@@ -35,9 +31,6 @@ public:
                          int64_t width, int64_t height) override;
     std::string GetIdentifier() const override { return path_; }
     bool IsRemote() const override { return false; }
-
-    // Get slide path (legacy accessor)
-    const std::string& GetPath() const { return path_; }
 
 private:
     void ConvertARGBtoRGBA(uint32_t* pixels, size_t count);

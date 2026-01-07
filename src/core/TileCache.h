@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TextureManager.h"
+#include "TileKey.h"
 #include <unordered_map>
 #include <list>
 #include <cstdint>

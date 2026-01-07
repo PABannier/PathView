@@ -6,13 +6,13 @@
 #include <memory>
 
 #include "TileConstants.h"
+#include "TileKey.h"
 
 class ISlideSource;
 class Viewport;
 class TextureManager;
 class TileCache;
 class TileLoadThreadPool;
-struct TileKey;
 struct TileData;
 
 class SlideRenderer {
@@ -30,9 +30,6 @@ public:
     size_t GetCacheTileCount() const;
     size_t GetCacheMemoryUsage() const;
     double GetCacheHitRate() const;
-
-    // Get thread pool statistics
-    size_t GetPendingTileCount() const;
 
 private:
     int32_t SelectLevel(double zoom) const;
