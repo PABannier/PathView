@@ -30,6 +30,7 @@
 #include <limits>
 #include <cfloat>
 #include <thread>
+#include <filesystem>
 
 Application::Application()
     : window_(nullptr)
@@ -600,6 +601,9 @@ void Application::ClearSlideState() {
     }
 
     currentSlidePath_.clear();
+
+    // Reset window title to default
+    SDL_SetWindowTitle(window_, "PathView - Digital Pathology Viewer");
 }
 
 void Application::LoadSlide(const std::string& path) {
@@ -619,6 +623,10 @@ void Application::LoadSlide(const std::string& path) {
     }
 
     std::cout << "Slide loaded successfully!" << std::endl;
+
+    // Update window title to show the filename
+    std::string filename = std::filesystem::path(path).filename().string();
+    SDL_SetWindowTitle(window_, filename.c_str());
 
     // Create viewport for interactive navigation
     viewport_ = std::make_unique<Viewport>(
@@ -2149,6 +2157,9 @@ void Application::LoadRemoteSlide(const std::string& slideId) {
 
     std::cout << "Remote slide loaded successfully!" << std::endl;
     currentSlidePath_ = remoteSlideSource_->GetIdentifier();
+
+    // Update window title to show the slide ID
+    SDL_SetWindowTitle(window_, slideId.c_str());
 
     // Create viewport for interactive navigation
     viewport_ = std::make_unique<Viewport>(
