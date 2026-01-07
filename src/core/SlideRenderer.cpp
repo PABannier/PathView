@@ -1,6 +1,5 @@
 #include "SlideRenderer.h"
 #include "ISlideSource.h"
-#include "SlideLoader.h"  // For LevelDimensions
 #include "Viewport.h"
 #include "TextureManager.h"
 #include "TileCache.h"

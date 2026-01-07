@@ -1,16 +1,12 @@
 #pragma once
 
 #include "ISlideSource.h"
+#include "SlideTypes.h"
 #include <string>
 #include <vector>
 #include <cstdint>
 #include <cstddef>
 #include <openslide/openslide.h>
-
-struct LevelDimensions {
-    int64_t width;
-    int64_t height;
-};
 
 class SlideLoader : public ISlideSource {
 public:
