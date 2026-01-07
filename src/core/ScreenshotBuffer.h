@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <mutex>
-#include <atomic>
 #include <cstdint>
 
 namespace pathview {
@@ -24,26 +23,6 @@ public:
     ScreenshotBuffer& operator=(const ScreenshotBuffer&) = delete;
     ScreenshotBuffer(ScreenshotBuffer&&) = delete;
     ScreenshotBuffer& operator=(ScreenshotBuffer&&) = delete;
-
-    /**
-     * Request a screenshot capture on the next render frame
-     */
-    void RequestCapture();
-
-    /**
-     * Check if a capture is currently requested
-     */
-    bool IsCaptureRequested() const;
-
-    /**
-     * Clear the capture request flag
-     */
-    void ClearCaptureRequest();
-
-    /**
-     * Check if captured data is ready to read
-     */
-    bool IsReady() const;
 
     /**
      * Store captured pixel data (called by rendering thread)
@@ -73,7 +52,6 @@ private:
     int height_;
     bool ready_;
     mutable std::mutex mutex_;  // Mutable to allow locking in const methods
-    std::atomic<bool> captureRequested_;
 };
 
 } // namespace pathview
