@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TextureManager.h"  // For TileKey
+#include "TileKey.h"
 #include <chrono>
 
 // Priority levels for tile loading

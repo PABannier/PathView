@@ -6,13 +6,13 @@
 #include <memory>
 
 #include "TileConstants.h"
+#include "TileKey.h"
 
 class ISlideSource;
 class Viewport;
 class TextureManager;
 class TileCache;
 class TileLoadThreadPool;
-struct TileKey;
 struct TileData;
 
 class SlideRenderer {
