@@ -6,8 +6,7 @@
 // Priority levels for tile loading
 enum class TileLoadPriority : int32_t {
     URGENT = 1000,    // Currently visible, no fallback available
-    VISIBLE = 500,    // Currently visible, has fallback showing
-    ADJACENT = 100    // Adjacent to viewport (for future prefetch)
+    VISIBLE = 500     // Currently visible, has fallback showing
 };
 
 // Request for loading a tile in background

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "JSONPolygonLoader.h"
 #include "PolygonOverlay.h"
 #include "PolygonLoader.h"
 #include <string>

@@ -32,7 +32,6 @@ public:
 
     // Additional accessors
     const std::string& GetSlideId() const { return slideId_; }
-    int32_t GetTileSize() const { return info_.tileSize; }
 
 private:
     // Fetch and decode a single tile, returns actual decoded dimensions
