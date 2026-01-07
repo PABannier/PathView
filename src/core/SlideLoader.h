@@ -36,9 +36,6 @@ public:
     std::string GetIdentifier() const override { return path_; }
     bool IsRemote() const override { return false; }
 
-    // Get slide path (legacy accessor)
-    const std::string& GetPath() const { return path_; }
-
 private:
     void ConvertARGBtoRGBA(uint32_t* pixels, size_t count);
     void CheckError();
