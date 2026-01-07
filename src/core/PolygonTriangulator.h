@@ -50,14 +50,6 @@ private:
     static bool PointInTriangle(const Vec2& p, const Vec2& a, const Vec2& b, const Vec2& c);
 
     /**
-     * Compute cross product of two 2D vectors
-     * @param a First vector
-     * @param b Second vector
-     * @return Cross product (z-component, since z=0 for 2D vectors)
-     */
-    static double Cross(const Vec2& a, const Vec2& b);
-
-    /**
      * Calculate signed area of a triangle (half of cross product)
      * @param a First vertex
      * @param b Second vertex
