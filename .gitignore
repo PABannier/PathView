@@ -47,6 +47,7 @@ vcpkg_installed/
 .pytest_cache/
 .ruff_cache/
 .venv/
+.cache/
 
 # Server
 server/

@@ -30,23 +30,23 @@ message TileSegmentationData {
     required TissueSegmentationMap tissue_segmentation_map = 8;
 }
 
-message SlideSegmentationData {
-    required string slide_id   = 1;
-    required string slide_path = 2;
-    required float  mpp        = 3;
-    required int32  max_level  = 4;
-    required string cell_model_name = 5;
-    required string tissue_model_name = 6;
-    required int32 tissue_empty_class = 7;
-
-    repeated TileSegmentationData tiles = 8;
-
-    map<int32, string> tissue_class_mapping = 9;
-}
-
 message TissueSegmentationMap {
     required bytes data   = 1;  // The flattened array of bytes
     required int32 width  = 2;  // Width of the segmentation map
     required int32 height = 3;  // Height of the segmentation map
     required string dtype = 4;  // Format information (e.g., "uint8")
+}
+
+message SlideSegmentationData {
+    required string slide_id   = 1;
+    required string slide_path = 2;
+    required float  mpp        = 3;
+    required int32  max_level  = 4;
+
+    required string cell_model_name   = 5;
+    required string tissue_model_name = 6;
+
+    repeated TileSegmentationData tiles = 8;
+
+    map<int32, string> tissue_class_mapping = 9;
 }
