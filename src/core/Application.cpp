@@ -5,8 +5,10 @@
 #include "SlideRenderer.h"
 #include "Minimap.h"
 #include "PolygonOverlay.h"
+#include "TissueMapOverlay.h"
 #include "AnnotationManager.h"
 #include "NavigationLock.h"
+#include "ProtobufPolygonLoader.h"
 #include "UIStyle.h"
 #include "PNGEncoder.h"
 #include "ScreenshotBuffer.h"
@@ -183,6 +185,9 @@ bool Application::Initialize() {
 
     // Create polygon overlay
     polygonOverlay_ = std::make_unique<PolygonOverlay>(renderer_);
+
+    // Create tissue map overlay
+    tissueMapOverlay_ = std::make_unique<TissueMapOverlay>(renderer_);
 
     // Create annotation manager
     annotationManager_ = std::make_unique<AnnotationManager>(renderer_);
@@ -483,7 +488,12 @@ void Application::Render() {
         slideRenderer_->Render(*viewport_);
     }
 
-    // Render polygon overlays
+    // Render tissue segmentation overlay (below cell polygons)
+    if (tissueMapOverlay_ && viewport_ && tissueMapOverlay_->IsVisible()) {
+        tissueMapOverlay_->Render(*viewport_);
+    }
+
+    // Render cell polygon overlays
     if (polygonOverlay_ && viewport_ && polygonOverlay_->IsVisible()) {
         polygonOverlay_->Render(*viewport_);
     }
@@ -596,6 +606,10 @@ void Application::ClearSlideState() {
         polygonOverlay_->Clear();
     }
 
+    if (tissueMapOverlay_) {
+        tissueMapOverlay_->Clear();
+    }
+
     if (annotationManager_) {
         annotationManager_->ClearAnnotations();
     }
@@ -703,6 +717,65 @@ bool Application::LoadPolygons(const std::string& path) {
         return false;
     }
 
+    // Check if this is a protobuf file - if so, load with tissue data
+    std::string ext = std::filesystem::path(path).extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+    if (ext == ".pb" || ext == ".proto" || ext == ".protobuf" || ext == ".bin") {
+        // Use LoadWithTissue to get both cell polygons and tissue map
+        ProtobufPolygonLoader loader;
+        std::vector<Polygon> polygons;
+        std::map<int, SDL_Color> colors;
+        std::map<int, std::string> names;
+        TissueMapData tissueData;
+
+        if (!loader.LoadWithTissue(path, polygons, colors, names, tissueData)) {
+            std::cerr << "Failed to load protobuf data from: " << path << std::endl;
+            return false;
+        }
+
+        // Clear existing data
+        polygonOverlay_->Clear();
+        if (tissueMapOverlay_) {
+            tissueMapOverlay_->Clear();
+        }
+
+        // Set polygon data directly (using new method we need to add, or fall back to LoadPolygons)
+        // For now, just use the existing LoadPolygons which will re-parse the file
+        // This is inefficient but maintains compatibility
+        if (!polygonOverlay_->LoadPolygons(path)) {
+            std::cerr << "Failed to load polygons from: " << path << std::endl;
+            return false;
+        }
+
+        // Load tissue data if available
+        if (tissueMapOverlay_ && !tissueData.tiles.empty()) {
+            tissueMapOverlay_->SetTissueData(
+                std::move(tissueData.tiles),
+                tissueData.classMapping,
+                tissueData.maxLevel);
+
+            // Set slide dimensions if we have them
+            if (slideLoader_) {
+                tissueMapOverlay_->SetSlideDimensions(
+                    static_cast<double>(slideLoader_->GetWidth()),
+                    static_cast<double>(slideLoader_->GetHeight()));
+            } else if (remoteSlideSource_) {
+                // Use dimensions from remote source if available
+                // For now, tissue maps may not work correctly with remote slides
+            }
+
+            tissueMapOverlay_->SetVisible(true);
+            std::cout << "Tissue map loaded with " << tissueData.classMapping.size()
+                      << " classes" << std::endl;
+        }
+
+        polygonOverlay_->SetVisible(true);
+        std::cout << "Polygons loaded successfully from: " << path << std::endl;
+        return true;
+    }
+
+    // For non-protobuf files, use the standard loading path
     if (polygonOverlay_->LoadPolygons(path)) {
         std::cout << "Polygons loaded successfully from: " << path << std::endl;
         // Automatically enable visibility after loading
@@ -908,9 +981,9 @@ void Application::RenderSidebar() {
                 ImGui::EndTabItem();
             }
 
-            // Tab 2: Cell Polygons
-            if (ImGui::BeginTabItem("Cell Polygons")) {
-                RenderPolygonTab();
+            // Tab 2: Layers (Tissue Map + Cell Polygons)
+            if (ImGui::BeginTabItem("Layers")) {
+                RenderLayersTab();
                 ImGui::EndTabItem();
             }
 
@@ -1084,6 +1157,168 @@ void Application::RenderPolygonTab() {
         ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
                           "No polygons loaded");
         ImGui::Text("Use File -> Load Polygons...");
+    }
+}
+
+void Application::RenderLayersTab() {
+    bool hasTissue = tissueMapOverlay_ && tissueMapOverlay_->GetTileCount() > 0;
+    bool hasPolygons = polygonOverlay_ && polygonOverlay_->GetPolygonCount() > 0;
+
+    // Empty state
+    if (!hasTissue && !hasPolygons) {
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "No layers loaded");
+        ImGui::Spacing();
+        ImGui::TextWrapped("Use File -> Load Polygons to load segmentation data.");
+        return;
+    }
+
+    // === TISSUE MAP SECTION ===
+    if (hasTissue) {
+        bool tissueVisible = tissueMapOverlay_->IsVisible();
+
+        // Header with master visibility toggle
+        ImGui::PushID("TissueSection");
+
+        // Use a styled header
+        ImVec4 headerColor = tissueVisible
+            ? ImVec4(0.2f, 0.4f, 0.6f, 1.0f)
+            : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+        ImGui::PushStyleColor(ImGuiCol_Header, headerColor);
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(headerColor.x + 0.1f, headerColor.y + 0.1f, headerColor.z + 0.1f, 1.0f));
+
+        bool tissueOpen = ImGui::CollapsingHeader("Tissue Map", ImGuiTreeNodeFlags_DefaultOpen);
+
+        ImGui::PopStyleColor(2);
+
+        // Master visibility checkbox on same line
+        ImGui::SameLine(ImGui::GetWindowWidth() - 40);
+        if (ImGui::Checkbox("##TissueVisible", &tissueVisible)) {
+            tissueMapOverlay_->SetVisible(tissueVisible);
+        }
+
+        if (tissueOpen) {
+            ImGui::Indent(10.0f);
+
+            // Opacity slider
+            float opacity = tissueMapOverlay_->GetOpacity();
+            if (ImGui::SliderFloat("Opacity##Tissue", &opacity, 0.0f, 1.0f, "%.2f")) {
+                tissueMapOverlay_->SetOpacity(opacity);
+            }
+
+            ImGui::Spacing();
+            ImGui::Text("Tissue Classes:");
+            ImGui::Spacing();
+
+            // Per-class visibility and color controls
+            for (const auto& tissueClass : tissueMapOverlay_->GetClasses()) {
+                ImGui::PushID(tissueClass.classId);
+
+                // Visibility checkbox
+                bool classVisible = tissueMapOverlay_->IsClassVisible(tissueClass.classId);
+                if (ImGui::Checkbox("##TissueClassVis", &classVisible)) {
+                    tissueMapOverlay_->SetClassVisible(tissueClass.classId, classVisible);
+                }
+
+                ImGui::SameLine();
+
+                // Color picker
+                SDL_Color color = tissueMapOverlay_->GetClassColor(tissueClass.classId);
+                ImVec4 imColor(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, 1.0f);
+                if (ImGui::ColorEdit3(tissueClass.name.c_str(), (float*)&imColor,
+                                      ImGuiColorEditFlags_NoInputs)) {
+                    tissueMapOverlay_->SetClassColor(tissueClass.classId, {
+                        static_cast<uint8_t>(imColor.x * 255),
+                        static_cast<uint8_t>(imColor.y * 255),
+                        static_cast<uint8_t>(imColor.z * 255),
+                        255
+                    });
+                }
+
+                ImGui::PopID();
+            }
+
+            ImGui::Separator();
+            ImGui::Text("Tiles: %d", tissueMapOverlay_->GetTileCount());
+
+            ImGui::Unindent(10.0f);
+        }
+
+        ImGui::PopID();
+        ImGui::Spacing();
+    }
+
+    // === CELL POLYGONS SECTION ===
+    if (hasPolygons) {
+        bool polygonsVisible = polygonOverlay_->IsVisible();
+
+        // Header with master visibility toggle
+        ImGui::PushID("PolygonSection");
+
+        ImVec4 headerColor = polygonsVisible
+            ? ImVec4(0.4f, 0.5f, 0.3f, 1.0f)
+            : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+        ImGui::PushStyleColor(ImGuiCol_Header, headerColor);
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(headerColor.x + 0.1f, headerColor.y + 0.1f, headerColor.z + 0.1f, 1.0f));
+
+        bool polygonsOpen = ImGui::CollapsingHeader("Cell Polygons", ImGuiTreeNodeFlags_DefaultOpen);
+
+        ImGui::PopStyleColor(2);
+
+        // Master visibility checkbox on same line
+        ImGui::SameLine(ImGui::GetWindowWidth() - 40);
+        if (ImGui::Checkbox("##PolygonsVisible", &polygonsVisible)) {
+            polygonOverlay_->SetVisible(polygonsVisible);
+        }
+
+        if (polygonsOpen) {
+            ImGui::Indent(10.0f);
+
+            // Opacity slider
+            float opacity = polygonOverlay_->GetOpacity();
+            if (ImGui::SliderFloat("Opacity##Polygons", &opacity, 0.0f, 1.0f, "%.2f")) {
+                polygonOverlay_->SetOpacity(opacity);
+            }
+
+            ImGui::Spacing();
+            ImGui::Text("Cell Classes:");
+            ImGui::Spacing();
+
+            // Per-class visibility and color controls
+            for (int classId : polygonOverlay_->GetClassIds()) {
+                ImGui::PushID(classId);
+
+                // Visibility checkbox
+                bool classVisible = polygonOverlay_->IsClassVisible(classId);
+                if (ImGui::Checkbox("##PolygonClassVis", &classVisible)) {
+                    polygonOverlay_->SetClassVisible(classId, classVisible);
+                }
+
+                ImGui::SameLine();
+
+                // Color picker
+                SDL_Color color = polygonOverlay_->GetClassColor(classId);
+                ImVec4 imColor(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, 1.0f);
+                std::string className = polygonOverlay_->GetClassName(classId);
+                if (ImGui::ColorEdit3(className.c_str(), (float*)&imColor,
+                                      ImGuiColorEditFlags_NoInputs)) {
+                    polygonOverlay_->SetClassColor(classId, {
+                        static_cast<uint8_t>(imColor.x * 255),
+                        static_cast<uint8_t>(imColor.y * 255),
+                        static_cast<uint8_t>(imColor.z * 255),
+                        255
+                    });
+                }
+
+                ImGui::PopID();
+            }
+
+            ImGui::Separator();
+            ImGui::Text("Total: %d polygons", polygonOverlay_->GetPolygonCount());
+
+            ImGui::Unindent(10.0f);
+        }
+
+        ImGui::PopID();
     }
 }
 

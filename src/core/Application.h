@@ -15,6 +15,7 @@ class Minimap;
 class Viewport;
 class TextureManager;
 class PolygonOverlay;
+class TissueMapOverlay;
 class AnnotationManager;
 class NavigationLock;
 struct ImFont;
@@ -92,6 +93,7 @@ private:
     void RenderWelcomeOverlay();
     void RenderSlideInfoTab();
     void RenderPolygonTab();
+    void RenderLayersTab();
     void RenderActionCardsTab();
     void RenderNavigationLockIndicator();
     void ClearSlideState();
@@ -135,6 +137,7 @@ private:
     std::unique_ptr<SlideRenderer> slideRenderer_;
     std::unique_ptr<Minimap> minimap_;
     std::unique_ptr<PolygonOverlay> polygonOverlay_;
+    std::unique_ptr<TissueMapOverlay> tissueMapOverlay_;
     std::unique_ptr<AnnotationManager> annotationManager_;
 
     // IPC server for remote control
