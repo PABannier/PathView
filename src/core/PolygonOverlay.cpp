@@ -136,10 +136,12 @@ void PolygonOverlay::Render(const Viewport& viewport) {
         return;
     }
 
-    // Group polygons by class for batching
+    // Group polygons by class for batching (filter by class visibility)
     std::map<int, std::vector<Polygon*>> batchesByClass;
     for (auto* polygon : visiblePolygons) {
-        batchesByClass[polygon->classId].push_back(polygon);
+        if (IsClassVisible(polygon->classId)) {
+            batchesByClass[polygon->classId].push_back(polygon);
+        }
     }
 
     // Set blend mode for opacity
@@ -157,6 +159,7 @@ void PolygonOverlay::Clear() {
     polygons_.clear();
     classColors_.clear();
     classNames_.clear();
+    classVisibility_.clear();
     classIds_.clear();
     spatialIndex_.reset();
     visible_ = false;
@@ -345,6 +348,22 @@ std::string PolygonOverlay::GetClassName(int classId) const {
 
     // Fallback to generic name if not found
     return "Class " + std::to_string(classId);
+}
+
+void PolygonOverlay::SetClassVisible(int classId, bool visible) {
+    classVisibility_[classId] = visible;
+}
+
+bool PolygonOverlay::IsClassVisible(int classId) const {
+    auto it = classVisibility_.find(classId);
+    // Default to visible if not explicitly set
+    return it == classVisibility_.end() || it->second;
+}
+
+void PolygonOverlay::SetAllClassesVisible(bool visible) {
+    for (int classId : classIds_) {
+        classVisibility_[classId] = visible;
+    }
 }
 
 void PolygonOverlay::InitializeDefaultColors() {

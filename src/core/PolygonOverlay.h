@@ -82,6 +82,11 @@ public:
     void SetClassColor(int classId, SDL_Color color);
     SDL_Color GetClassColor(int classId) const;
 
+    // Per-class visibility
+    void SetClassVisible(int classId, bool visible);
+    bool IsClassVisible(int classId) const;
+    void SetAllClassesVisible(bool visible);
+
     // Get class information for UI legend
     const std::vector<int>& GetClassIds() const { return classIds_; }
     std::string GetClassName(int classId) const;
@@ -97,6 +102,7 @@ private:
     std::unique_ptr<PolygonIndex> spatialIndex_;
     std::map<int, SDL_Color> classColors_;
     std::map<int, std::string> classNames_;  // Map of class ID to class name
+    std::map<int, bool> classVisibility_;    // Per-class visibility
     std::vector<int> classIds_;  // Ordered list of class IDs
     bool visible_;
     float opacity_;
