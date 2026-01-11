@@ -735,18 +735,12 @@ bool Application::LoadPolygons(const std::string& path) {
         }
 
         // Clear existing data
-        polygonOverlay_->Clear();
         if (tissueMapOverlay_) {
             tissueMapOverlay_->Clear();
         }
 
-        // Set polygon data directly (using new method we need to add, or fall back to LoadPolygons)
-        // For now, just use the existing LoadPolygons which will re-parse the file
-        // This is inefficient but maintains compatibility
-        if (!polygonOverlay_->LoadPolygons(path)) {
-            std::cerr << "Failed to load polygons from: " << path << std::endl;
-            return false;
-        }
+        // Set polygon data directly - avoids re-parsing the protobuf file
+        polygonOverlay_->SetPolygonData(std::move(polygons), std::move(colors), std::move(names));
 
         // Load tissue data if available
         if (tissueMapOverlay_ && !tissueData.tiles.empty()) {

@@ -64,6 +64,11 @@ public:
     // Load polygons from binary file
     bool LoadPolygons(const std::string& filepath);
 
+    // Set polygon data directly (avoids duplicate file parsing)
+    void SetPolygonData(std::vector<Polygon>&& polygons,
+                        std::map<int, SDL_Color>&& colors,
+                        std::map<int, std::string>&& classNames);
+
     // Render polygons for current viewport
     void Render(const Viewport& viewport);
 

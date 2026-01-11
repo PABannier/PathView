@@ -6,6 +6,8 @@
 #include <map>
 #include <string>
 #include <cstdint>
+#include <array>
+#include <memory>
 
 // Tissue tile data structure
 struct TissueTile {
@@ -16,9 +18,13 @@ struct TissueTile {
     SDL_Texture* texture;           // Cached rendered texture
     bool textureValid;              // Cache invalidation flag
 
+    // Pre-computed for performance (avoid std::pow per tile per frame)
+    double scaleFactor;             // pow(2, maxLevel - level)
+    Rect bounds;                    // Bounds in slide coordinates (level 0)
+
     TissueTile()
         : level(0), tileX(0), tileY(0), width(0), height(0),
-          texture(nullptr), textureValid(false) {}
+          texture(nullptr), textureValid(false), scaleFactor(1.0) {}
 
     ~TissueTile() {
         // Note: texture cleanup handled by TissueMapOverlay
@@ -29,7 +35,8 @@ struct TissueTile {
         : level(other.level), tileX(other.tileX), tileY(other.tileY),
           width(other.width), height(other.height),
           classData(std::move(other.classData)),
-          texture(other.texture), textureValid(other.textureValid) {
+          texture(other.texture), textureValid(other.textureValid),
+          scaleFactor(other.scaleFactor), bounds(other.bounds) {
         other.texture = nullptr;
         other.textureValid = false;
     }
@@ -45,6 +52,8 @@ struct TissueTile {
             classData = std::move(other.classData);
             texture = other.texture;
             textureValid = other.textureValid;
+            scaleFactor = other.scaleFactor;
+            bounds = other.bounds;
             other.texture = nullptr;
             other.textureValid = false;
         }
@@ -66,6 +75,22 @@ struct TissueClass {
     TissueClass() : classId(0), color({128, 128, 128, 255}), visible(true) {}
     TissueClass(int id, const std::string& n, SDL_Color c)
         : classId(id), name(n), color(c), visible(true) {}
+};
+
+// Spatial index for efficient tissue tile queries (O(k) instead of O(N))
+class TissueTileIndex {
+public:
+    TissueTileIndex(int gridWidth, int gridHeight, double slideWidth, double slideHeight);
+    void Build(std::vector<TissueTile>& tiles);
+    std::vector<TissueTile*> QueryRegion(const Rect& region) const;
+    void Clear();
+
+private:
+    std::vector<std::vector<std::vector<TissueTile*>>> grid_;  // 2D grid of tile pointers
+    int gridWidth_, gridHeight_;
+    double cellWidth_, cellHeight_;
+
+    void SlideToGridCell(double x, double y, int& outCellX, int& outCellY) const;
 };
 
 // Main tissue map overlay class
@@ -125,13 +150,23 @@ private:
     double slideHeight_;
     int maxLevel_;
 
+    // Spatial index for O(k) tile queries instead of O(N)
+    std::unique_ptr<TissueTileIndex> spatialIndex_;
+    static constexpr int DEFAULT_GRID_SIZE = 64;
+
+    // Color lookup table for O(1) pixel color lookup (classId is uint8_t: 0-255)
+    std::array<SDL_Color, 256> colorLUT_;
+
     // Texture management
     void RenderTileTexture(TissueTile& tile);
     void InvalidateAllTextures();
     void DestroyAllTextures();
 
-    // Helpers
-    SDL_Color GetPixelColor(uint8_t classId) const;
+    // Color LUT management
+    void RebuildColorLUT();
+
+    // Spatial index management
+    void BuildSpatialIndex();
 
     // Default tissue class color palette
     static SDL_Color GetDefaultTissueColor(int classId);
