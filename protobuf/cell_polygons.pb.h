@@ -145,7 +145,7 @@ class TissueSegmentationMap final : public ::google::protobuf::Message
     return reinterpret_cast<const TissueSegmentationMap*>(
         &_TissueSegmentationMap_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 3;
   friend void swap(TissueSegmentationMap& a, TissueSegmentationMap& b) { a.Swap(&b); }
   inline void Swap(TissueSegmentationMap* other) {
     if (other == this) return;
@@ -1212,7 +1212,7 @@ class SlideSegmentationData final : public ::google::protobuf::Message
     return reinterpret_cast<const SlideSegmentationData*>(
         &_SlideSegmentationData_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(SlideSegmentationData& a, SlideSegmentationData& b) { a.Swap(&b); }
   inline void Swap(SlideSegmentationData* other) {
     if (other == this) return;
@@ -1312,7 +1312,6 @@ class SlideSegmentationData final : public ::google::protobuf::Message
     kTissueModelNameFieldNumber = 6,
     kMppFieldNumber = 3,
     kMaxLevelFieldNumber = 4,
-    kTissueEmptyClassFieldNumber = 7,
   };
   // repeated .DataProtoPolygon.TileSegmentationData tiles = 8;
   int tiles_size() const;
@@ -1436,23 +1435,12 @@ class SlideSegmentationData final : public ::google::protobuf::Message
   void _internal_set_max_level(::int32_t value);
 
   public:
-  // required int32 tissue_empty_class = 7;
-  bool has_tissue_empty_class() const;
-  void clear_tissue_empty_class() ;
-  ::int32_t tissue_empty_class() const;
-  void set_tissue_empty_class(::int32_t value);
-
-  private:
-  ::int32_t _internal_tissue_empty_class() const;
-  void _internal_set_tissue_empty_class(::int32_t value);
-
-  public:
   // @@protoc_insertion_point(class_scope:DataProtoPolygon.SlideSegmentationData)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      3, 9, 2,
+      3, 8, 2,
       125, 2>
       _table_;
 
@@ -1483,7 +1471,6 @@ class SlideSegmentationData final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr tissue_model_name_;
     float mpp_;
     ::int32_t max_level_;
-    ::int32_t tissue_empty_class_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -2196,6 +2183,204 @@ inline void TileSegmentationData::set_allocated_tissue_segmentation_map(::DataPr
 
 // -------------------------------------------------------------------
 
+// TissueSegmentationMap
+
+// required bytes data = 1;
+inline bool TissueSegmentationMap::has_data() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline void TissueSegmentationMap::clear_data() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.data_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const std::string& TissueSegmentationMap::data() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:DataProtoPolygon.TissueSegmentationMap.data)
+  return _internal_data();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void TissueSegmentationMap::set_data(Arg_&& arg,
+                                                     Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.data_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:DataProtoPolygon.TissueSegmentationMap.data)
+}
+inline std::string* TissueSegmentationMap::mutable_data() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_data();
+  // @@protoc_insertion_point(field_mutable:DataProtoPolygon.TissueSegmentationMap.data)
+  return _s;
+}
+inline const std::string& TissueSegmentationMap::_internal_data() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.data_.Get();
+}
+inline void TissueSegmentationMap::_internal_set_data(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.data_.Set(value, GetArena());
+}
+inline std::string* TissueSegmentationMap::_internal_mutable_data() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.data_.Mutable( GetArena());
+}
+inline std::string* TissueSegmentationMap::release_data() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:DataProtoPolygon.TissueSegmentationMap.data)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.data_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.data_.Set("", GetArena());
+  }
+  return released;
+}
+inline void TissueSegmentationMap::set_allocated_data(std::string* value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.data_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.data_.IsDefault()) {
+    _impl_.data_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:DataProtoPolygon.TissueSegmentationMap.data)
+}
+
+// required int32 width = 2;
+inline bool TissueSegmentationMap::has_width() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  return value;
+}
+inline void TissueSegmentationMap::clear_width() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.width_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::int32_t TissueSegmentationMap::width() const {
+  // @@protoc_insertion_point(field_get:DataProtoPolygon.TissueSegmentationMap.width)
+  return _internal_width();
+}
+inline void TissueSegmentationMap::set_width(::int32_t value) {
+  _internal_set_width(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:DataProtoPolygon.TissueSegmentationMap.width)
+}
+inline ::int32_t TissueSegmentationMap::_internal_width() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.width_;
+}
+inline void TissueSegmentationMap::_internal_set_width(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.width_ = value;
+}
+
+// required int32 height = 3;
+inline bool TissueSegmentationMap::has_height() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000008u) != 0;
+  return value;
+}
+inline void TissueSegmentationMap::clear_height() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.height_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline ::int32_t TissueSegmentationMap::height() const {
+  // @@protoc_insertion_point(field_get:DataProtoPolygon.TissueSegmentationMap.height)
+  return _internal_height();
+}
+inline void TissueSegmentationMap::set_height(::int32_t value) {
+  _internal_set_height(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:DataProtoPolygon.TissueSegmentationMap.height)
+}
+inline ::int32_t TissueSegmentationMap::_internal_height() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.height_;
+}
+inline void TissueSegmentationMap::_internal_set_height(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.height_ = value;
+}
+
+// required string dtype = 4;
+inline bool TissueSegmentationMap::has_dtype() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline void TissueSegmentationMap::clear_dtype() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.dtype_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const std::string& TissueSegmentationMap::dtype() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:DataProtoPolygon.TissueSegmentationMap.dtype)
+  return _internal_dtype();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void TissueSegmentationMap::set_dtype(Arg_&& arg,
+                                                     Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.dtype_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:DataProtoPolygon.TissueSegmentationMap.dtype)
+}
+inline std::string* TissueSegmentationMap::mutable_dtype() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_dtype();
+  // @@protoc_insertion_point(field_mutable:DataProtoPolygon.TissueSegmentationMap.dtype)
+  return _s;
+}
+inline const std::string& TissueSegmentationMap::_internal_dtype() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.dtype_.Get();
+}
+inline void TissueSegmentationMap::_internal_set_dtype(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.dtype_.Set(value, GetArena());
+}
+inline std::string* TissueSegmentationMap::_internal_mutable_dtype() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  return _impl_.dtype_.Mutable( GetArena());
+}
+inline std::string* TissueSegmentationMap::release_dtype() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:DataProtoPolygon.TissueSegmentationMap.dtype)
+  if ((_impl_._has_bits_[0] & 0x00000002u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  auto* released = _impl_.dtype_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.dtype_.Set("", GetArena());
+  }
+  return released;
+}
+inline void TissueSegmentationMap::set_allocated_dtype(std::string* value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  _impl_.dtype_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.dtype_.IsDefault()) {
+    _impl_.dtype_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:DataProtoPolygon.TissueSegmentationMap.dtype)
+}
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // SlideSegmentationData
@@ -2532,34 +2717,6 @@ inline void SlideSegmentationData::set_allocated_tissue_model_name(std::string* 
   // @@protoc_insertion_point(field_set_allocated:DataProtoPolygon.SlideSegmentationData.tissue_model_name)
 }
 
-// required int32 tissue_empty_class = 7;
-inline bool SlideSegmentationData::has_tissue_empty_class() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000040u) != 0;
-  return value;
-}
-inline void SlideSegmentationData::clear_tissue_empty_class() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.tissue_empty_class_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000040u;
-}
-inline ::int32_t SlideSegmentationData::tissue_empty_class() const {
-  // @@protoc_insertion_point(field_get:DataProtoPolygon.SlideSegmentationData.tissue_empty_class)
-  return _internal_tissue_empty_class();
-}
-inline void SlideSegmentationData::set_tissue_empty_class(::int32_t value) {
-  _internal_set_tissue_empty_class(value);
-  _impl_._has_bits_[0] |= 0x00000040u;
-  // @@protoc_insertion_point(field_set:DataProtoPolygon.SlideSegmentationData.tissue_empty_class)
-}
-inline ::int32_t SlideSegmentationData::_internal_tissue_empty_class() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.tissue_empty_class_;
-}
-inline void SlideSegmentationData::_internal_set_tissue_empty_class(::int32_t value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.tissue_empty_class_ = value;
-}
-
 // repeated .DataProtoPolygon.TileSegmentationData tiles = 8;
 inline int SlideSegmentationData::_internal_tiles_size() const {
   return _internal_tiles().size();
@@ -2635,204 +2792,6 @@ inline ::google::protobuf::Map<::int32_t, std::string>* SlideSegmentationData::_
 inline ::google::protobuf::Map<::int32_t, std::string>* SlideSegmentationData::mutable_tissue_class_mapping() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable_map:DataProtoPolygon.SlideSegmentationData.tissue_class_mapping)
   return _internal_mutable_tissue_class_mapping();
-}
-
-// -------------------------------------------------------------------
-
-// TissueSegmentationMap
-
-// required bytes data = 1;
-inline bool TissueSegmentationMap::has_data() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
-  return value;
-}
-inline void TissueSegmentationMap::clear_data() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.data_.ClearToEmpty();
-  _impl_._has_bits_[0] &= ~0x00000001u;
-}
-inline const std::string& TissueSegmentationMap::data() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:DataProtoPolygon.TissueSegmentationMap.data)
-  return _internal_data();
-}
-template <typename Arg_, typename... Args_>
-inline PROTOBUF_ALWAYS_INLINE void TissueSegmentationMap::set_data(Arg_&& arg,
-                                                     Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.data_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:DataProtoPolygon.TissueSegmentationMap.data)
-}
-inline std::string* TissueSegmentationMap::mutable_data() ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  std::string* _s = _internal_mutable_data();
-  // @@protoc_insertion_point(field_mutable:DataProtoPolygon.TissueSegmentationMap.data)
-  return _s;
-}
-inline const std::string& TissueSegmentationMap::_internal_data() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.data_.Get();
-}
-inline void TissueSegmentationMap::_internal_set_data(const std::string& value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.data_.Set(value, GetArena());
-}
-inline std::string* TissueSegmentationMap::_internal_mutable_data() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000001u;
-  return _impl_.data_.Mutable( GetArena());
-}
-inline std::string* TissueSegmentationMap::release_data() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:DataProtoPolygon.TissueSegmentationMap.data)
-  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
-    return nullptr;
-  }
-  _impl_._has_bits_[0] &= ~0x00000001u;
-  auto* released = _impl_.data_.Release();
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.data_.Set("", GetArena());
-  }
-  return released;
-}
-inline void TissueSegmentationMap::set_allocated_data(std::string* value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000001u;
-  } else {
-    _impl_._has_bits_[0] &= ~0x00000001u;
-  }
-  _impl_.data_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.data_.IsDefault()) {
-    _impl_.data_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:DataProtoPolygon.TissueSegmentationMap.data)
-}
-
-// required int32 width = 2;
-inline bool TissueSegmentationMap::has_width() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
-  return value;
-}
-inline void TissueSegmentationMap::clear_width() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.width_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000004u;
-}
-inline ::int32_t TissueSegmentationMap::width() const {
-  // @@protoc_insertion_point(field_get:DataProtoPolygon.TissueSegmentationMap.width)
-  return _internal_width();
-}
-inline void TissueSegmentationMap::set_width(::int32_t value) {
-  _internal_set_width(value);
-  _impl_._has_bits_[0] |= 0x00000004u;
-  // @@protoc_insertion_point(field_set:DataProtoPolygon.TissueSegmentationMap.width)
-}
-inline ::int32_t TissueSegmentationMap::_internal_width() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.width_;
-}
-inline void TissueSegmentationMap::_internal_set_width(::int32_t value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.width_ = value;
-}
-
-// required int32 height = 3;
-inline bool TissueSegmentationMap::has_height() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000008u) != 0;
-  return value;
-}
-inline void TissueSegmentationMap::clear_height() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.height_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000008u;
-}
-inline ::int32_t TissueSegmentationMap::height() const {
-  // @@protoc_insertion_point(field_get:DataProtoPolygon.TissueSegmentationMap.height)
-  return _internal_height();
-}
-inline void TissueSegmentationMap::set_height(::int32_t value) {
-  _internal_set_height(value);
-  _impl_._has_bits_[0] |= 0x00000008u;
-  // @@protoc_insertion_point(field_set:DataProtoPolygon.TissueSegmentationMap.height)
-}
-inline ::int32_t TissueSegmentationMap::_internal_height() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.height_;
-}
-inline void TissueSegmentationMap::_internal_set_height(::int32_t value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.height_ = value;
-}
-
-// required string dtype = 4;
-inline bool TissueSegmentationMap::has_dtype() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
-  return value;
-}
-inline void TissueSegmentationMap::clear_dtype() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.dtype_.ClearToEmpty();
-  _impl_._has_bits_[0] &= ~0x00000002u;
-}
-inline const std::string& TissueSegmentationMap::dtype() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:DataProtoPolygon.TissueSegmentationMap.dtype)
-  return _internal_dtype();
-}
-template <typename Arg_, typename... Args_>
-inline PROTOBUF_ALWAYS_INLINE void TissueSegmentationMap::set_dtype(Arg_&& arg,
-                                                     Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000002u;
-  _impl_.dtype_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:DataProtoPolygon.TissueSegmentationMap.dtype)
-}
-inline std::string* TissueSegmentationMap::mutable_dtype() ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  std::string* _s = _internal_mutable_dtype();
-  // @@protoc_insertion_point(field_mutable:DataProtoPolygon.TissueSegmentationMap.dtype)
-  return _s;
-}
-inline const std::string& TissueSegmentationMap::_internal_dtype() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.dtype_.Get();
-}
-inline void TissueSegmentationMap::_internal_set_dtype(const std::string& value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000002u;
-  _impl_.dtype_.Set(value, GetArena());
-}
-inline std::string* TissueSegmentationMap::_internal_mutable_dtype() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000002u;
-  return _impl_.dtype_.Mutable( GetArena());
-}
-inline std::string* TissueSegmentationMap::release_dtype() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:DataProtoPolygon.TissueSegmentationMap.dtype)
-  if ((_impl_._has_bits_[0] & 0x00000002u) == 0) {
-    return nullptr;
-  }
-  _impl_._has_bits_[0] &= ~0x00000002u;
-  auto* released = _impl_.dtype_.Release();
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.dtype_.Set("", GetArena());
-  }
-  return released;
-}
-inline void TissueSegmentationMap::set_allocated_dtype(std::string* value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000002u;
-  } else {
-    _impl_._has_bits_[0] &= ~0x00000002u;
-  }
-  _impl_.dtype_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.dtype_.IsDefault()) {
-    _impl_.dtype_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:DataProtoPolygon.TissueSegmentationMap.dtype)
 }
 
 #ifdef __GNUC__

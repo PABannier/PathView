@@ -185,8 +185,7 @@ inline constexpr SlideSegmentationData::Impl_::Impl_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         mpp_{0},
-        max_level_{0},
-        tissue_empty_class_{0} {}
+        max_level_{0} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR SlideSegmentationData::SlideSegmentationData(::_pbi::ConstantInitialized)
@@ -269,6 +268,22 @@ const ::uint32_t
         6,
         ~0u,
         1,
+        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _impl_._has_bits_),
+        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _internal_metadata_),
+        ~0u,  // no _extensions_
+        ~0u,  // no _oneof_case_
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _impl_.data_),
+        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _impl_.width_),
+        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _impl_.height_),
+        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _impl_.dtype_),
+        0,
+        2,
+        3,
+        1,
         PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -295,7 +310,6 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::SlideSegmentationData, _impl_.max_level_),
         PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::SlideSegmentationData, _impl_.cell_model_name_),
         PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::SlideSegmentationData, _impl_.tissue_model_name_),
-        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::SlideSegmentationData, _impl_.tissue_empty_class_),
         PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::SlideSegmentationData, _impl_.tiles_),
         PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::SlideSegmentationData, _impl_.tissue_class_mapping_),
         0,
@@ -304,25 +318,8 @@ const ::uint32_t
         5,
         2,
         3,
-        6,
         ~0u,
         ~0u,
-        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _impl_._has_bits_),
-        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _internal_metadata_),
-        ~0u,  // no _extensions_
-        ~0u,  // no _oneof_case_
-        ~0u,  // no _weak_field_map_
-        ~0u,  // no _inlined_string_donated_
-        ~0u,  // no _split_
-        ~0u,  // no sizeof(Split)
-        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _impl_.data_),
-        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _impl_.width_),
-        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _impl_.height_),
-        PROTOBUF_FIELD_OFFSET(::DataProtoPolygon::TissueSegmentationMap, _impl_.dtype_),
-        0,
-        2,
-        3,
-        1,
 };
 
 static const ::_pbi::MigrationSchema
@@ -330,17 +327,17 @@ static const ::_pbi::MigrationSchema
         {0, 10, -1, sizeof(::DataProtoPolygon::SegmentationPolygon_Point)},
         {12, 25, -1, sizeof(::DataProtoPolygon::SegmentationPolygon)},
         {30, 46, -1, sizeof(::DataProtoPolygon::TileSegmentationData)},
-        {54, 64, -1, sizeof(::DataProtoPolygon::SlideSegmentationData_TissueClassMappingEntry_DoNotUse)},
-        {66, 83, -1, sizeof(::DataProtoPolygon::SlideSegmentationData)},
-        {92, 104, -1, sizeof(::DataProtoPolygon::TissueSegmentationMap)},
+        {54, 66, -1, sizeof(::DataProtoPolygon::TissueSegmentationMap)},
+        {70, 80, -1, sizeof(::DataProtoPolygon::SlideSegmentationData_TissueClassMappingEntry_DoNotUse)},
+        {82, 98, -1, sizeof(::DataProtoPolygon::SlideSegmentationData)},
 };
 static const ::_pb::Message* const file_default_instances[] = {
     &::DataProtoPolygon::_SegmentationPolygon_Point_default_instance_._instance,
     &::DataProtoPolygon::_SegmentationPolygon_default_instance_._instance,
     &::DataProtoPolygon::_TileSegmentationData_default_instance_._instance,
+    &::DataProtoPolygon::_TissueSegmentationMap_default_instance_._instance,
     &::DataProtoPolygon::_SlideSegmentationData_TissueClassMappingEntry_DoNotUse_default_instance_._instance,
     &::DataProtoPolygon::_SlideSegmentationData_default_instance_._instance,
-    &::DataProtoPolygon::_TissueSegmentationMap_default_instance_._instance,
 };
 const char descriptor_table_protodef_cell_5fpolygons_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -356,25 +353,24 @@ const char descriptor_table_protodef_cell_5fpolygons_2eproto[] ABSL_ATTRIBUTE_SE
     "\n\005width\030\005 \002(\005\022\016\n\006height\030\006 \002(\005\0224\n\005masks\030\007"
     " \003(\0132%.DataProtoPolygon.SegmentationPoly"
     "gon\022H\n\027tissue_segmentation_map\030\010 \002(\0132\'.D"
-    "ataProtoPolygon.TissueSegmentationMap\"\376\002"
-    "\n\025SlideSegmentationData\022\020\n\010slide_id\030\001 \002("
-    "\t\022\022\n\nslide_path\030\002 \002(\t\022\013\n\003mpp\030\003 \002(\002\022\021\n\tma"
-    "x_level\030\004 \002(\005\022\027\n\017cell_model_name\030\005 \002(\t\022\031"
-    "\n\021tissue_model_name\030\006 \002(\t\022\032\n\022tissue_empt"
-    "y_class\030\007 \002(\005\0225\n\005tiles\030\010 \003(\0132&.DataProto"
-    "Polygon.TileSegmentationData\022]\n\024tissue_c"
-    "lass_mapping\030\t \003(\0132\?.DataProtoPolygon.Sl"
-    "ideSegmentationData.TissueClassMappingEn"
-    "try\0329\n\027TissueClassMappingEntry\022\013\n\003key\030\001 "
-    "\001(\005\022\r\n\005value\030\002 \001(\t:\0028\001\"S\n\025TissueSegmenta"
-    "tionMap\022\014\n\004data\030\001 \002(\014\022\r\n\005width\030\002 \002(\005\022\016\n\006"
-    "height\030\003 \002(\005\022\r\n\005dtype\030\004 \002(\t"
+    "ataProtoPolygon.TissueSegmentationMap\"S\n"
+    "\025TissueSegmentationMap\022\014\n\004data\030\001 \002(\014\022\r\n\005"
+    "width\030\002 \002(\005\022\016\n\006height\030\003 \002(\005\022\r\n\005dtype\030\004 \002"
+    "(\t\"\342\002\n\025SlideSegmentationData\022\020\n\010slide_id"
+    "\030\001 \002(\t\022\022\n\nslide_path\030\002 \002(\t\022\013\n\003mpp\030\003 \002(\002\022"
+    "\021\n\tmax_level\030\004 \002(\005\022\027\n\017cell_model_name\030\005 "
+    "\002(\t\022\031\n\021tissue_model_name\030\006 \002(\t\0225\n\005tiles\030"
+    "\010 \003(\0132&.DataProtoPolygon.TileSegmentatio"
+    "nData\022]\n\024tissue_class_mapping\030\t \003(\0132\?.Da"
+    "taProtoPolygon.SlideSegmentationData.Tis"
+    "sueClassMappingEntry\0329\n\027TissueClassMappi"
+    "ngEntry\022\013\n\003key\030\001 \001(\005\022\r\n\005value\030\002 \001(\t:\0028\001"
 };
 static ::absl::once_flag descriptor_table_cell_5fpolygons_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_cell_5fpolygons_2eproto = {
     false,
     false,
-    987,
+    959,
     descriptor_table_protodef_cell_5fpolygons_2eproto,
     "cell_polygons.proto",
     &descriptor_table_cell_5fpolygons_2eproto_once,
@@ -1546,637 +1542,6 @@ void TileSegmentationData::InternalSwap(TileSegmentationData* PROTOBUF_RESTRICT 
 }
 // ===================================================================
 
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-              SlideSegmentationData_TissueClassMappingEntry_DoNotUse::SlideSegmentationData_TissueClassMappingEntry_DoNotUse() : SuperType(_class_data_.base()) {}
-              SlideSegmentationData_TissueClassMappingEntry_DoNotUse::SlideSegmentationData_TissueClassMappingEntry_DoNotUse(::google::protobuf::Arena* arena)
-                  : SuperType(arena, _class_data_.base()) {}
-#else   // PROTOBUF_CUSTOM_VTABLE
-              SlideSegmentationData_TissueClassMappingEntry_DoNotUse::SlideSegmentationData_TissueClassMappingEntry_DoNotUse() : SuperType() {}
-              SlideSegmentationData_TissueClassMappingEntry_DoNotUse::SlideSegmentationData_TissueClassMappingEntry_DoNotUse(::google::protobuf::Arena* arena) : SuperType(arena) {}
-#endif  // PROTOBUF_CUSTOM_VTABLE
-              inline void* SlideSegmentationData_TissueClassMappingEntry_DoNotUse::PlacementNew_(const void*, void* mem,
-                                                      ::google::protobuf::Arena* arena) {
-                return ::new (mem) SlideSegmentationData_TissueClassMappingEntry_DoNotUse(arena);
-              }
-              constexpr auto SlideSegmentationData_TissueClassMappingEntry_DoNotUse::InternalNewImpl_() {
-                return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(SlideSegmentationData_TissueClassMappingEntry_DoNotUse),
-                                                          alignof(SlideSegmentationData_TissueClassMappingEntry_DoNotUse));
-              }
-              PROTOBUF_CONSTINIT
-              PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-              const ::google::protobuf::internal::ClassDataFull SlideSegmentationData_TissueClassMappingEntry_DoNotUse::_class_data_ = {
-                  ::google::protobuf::internal::ClassData{
-                      &_SlideSegmentationData_TissueClassMappingEntry_DoNotUse_default_instance_._instance,
-                      &_table_.header,
-                      nullptr,  // OnDemandRegisterArenaDtor
-                      nullptr,  // IsInitialized
-                      &SlideSegmentationData_TissueClassMappingEntry_DoNotUse::MergeImpl,
-                      ::google::protobuf::Message::GetNewImpl<SlideSegmentationData_TissueClassMappingEntry_DoNotUse>(),
-              #if defined(PROTOBUF_CUSTOM_VTABLE)
-                      &SlideSegmentationData_TissueClassMappingEntry_DoNotUse::SharedDtor,
-                      static_cast<void (::google::protobuf::MessageLite::*)()>(
-                          &SlideSegmentationData_TissueClassMappingEntry_DoNotUse::ClearImpl),
-                          ::google::protobuf::Message::ByteSizeLongImpl, ::google::protobuf::Message::_InternalSerializeImpl
-                          ,
-              #endif  // PROTOBUF_CUSTOM_VTABLE
-                      PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_._cached_size_),
-                      false,
-                  },
-                  &SlideSegmentationData_TissueClassMappingEntry_DoNotUse::kDescriptorMethods,
-                  &descriptor_table_cell_5fpolygons_2eproto,
-                  nullptr,  // tracker
-              };
-              const ::google::protobuf::internal::ClassData* SlideSegmentationData_TissueClassMappingEntry_DoNotUse::GetClassData() const {
-                ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
-                ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
-                return _class_data_.base();
-              }
-PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 76, 2> SlideSegmentationData_TissueClassMappingEntry_DoNotUse::_table_ = {
-  {
-    PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_._has_bits_),
-    0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
-    offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
-    offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
-    0,  // num_aux_entries
-    offsetof(decltype(_table_), field_names),  // no aux_entries
-    _class_data_.base(),
-    nullptr,  // post_loop_handler
-    ::_pbi::TcParser::DiscardEverythingFallback,  // fallback
-    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::DataProtoPolygon::SlideSegmentationData_TissueClassMappingEntry_DoNotUse>(),  // to_prefetch
-    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
-  }, {{
-    // optional string value = 2;
-    {::_pbi::TcParser::FastSS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_.value_)}},
-    // optional int32 key = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_.key_), 1>(),
-     {8, 1, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_.key_)}},
-  }}, {{
-    65535, 65535
-  }}, {{
-    // optional int32 key = 1;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_.key_), _Internal::kHasBitsOffset + 1, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
-    // optional string value = 2;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_.value_), _Internal::kHasBitsOffset + 0, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
-  }},
-  // no aux_entries
-  {{
-    "\76\0\5\0\0\0\0\0"
-    "DataProtoPolygon.SlideSegmentationData.TissueClassMappingEntry"
-    "value"
-  }},
-};
-
-// ===================================================================
-
-class SlideSegmentationData::_Internal {
- public:
-  using HasBits =
-      decltype(std::declval<SlideSegmentationData>()._impl_._has_bits_);
-  static constexpr ::int32_t kHasBitsOffset =
-      8 * PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_._has_bits_);
-  static bool MissingRequiredFields(const HasBits& has_bits) {
-    return ((has_bits[0] & 0x0000007f) ^ 0x0000007f) != 0;
-  }
-};
-
-SlideSegmentationData::SlideSegmentationData(::google::protobuf::Arena* arena)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, _class_data_.base()) {
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(arena) {
-#endif  // PROTOBUF_CUSTOM_VTABLE
-  SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:DataProtoPolygon.SlideSegmentationData)
-}
-inline PROTOBUF_NDEBUG_INLINE SlideSegmentationData::Impl_::Impl_(
-    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
-    const Impl_& from, const ::DataProtoPolygon::SlideSegmentationData& from_msg)
-      : _has_bits_{from._has_bits_},
-        _cached_size_{0},
-        tiles_{visibility, arena, from.tiles_},
-        tissue_class_mapping_{visibility, arena, from.tissue_class_mapping_},
-        slide_id_(arena, from.slide_id_),
-        slide_path_(arena, from.slide_path_),
-        cell_model_name_(arena, from.cell_model_name_),
-        tissue_model_name_(arena, from.tissue_model_name_) {}
-
-SlideSegmentationData::SlideSegmentationData(
-    ::google::protobuf::Arena* arena,
-    const SlideSegmentationData& from)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, _class_data_.base()) {
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(arena) {
-#endif  // PROTOBUF_CUSTOM_VTABLE
-  SlideSegmentationData* const _this = this;
-  (void)_this;
-  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
-      from._internal_metadata_);
-  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-  ::memcpy(reinterpret_cast<char *>(&_impl_) +
-               offsetof(Impl_, mpp_),
-           reinterpret_cast<const char *>(&from._impl_) +
-               offsetof(Impl_, mpp_),
-           offsetof(Impl_, tissue_empty_class_) -
-               offsetof(Impl_, mpp_) +
-               sizeof(Impl_::tissue_empty_class_));
-
-  // @@protoc_insertion_point(copy_constructor:DataProtoPolygon.SlideSegmentationData)
-}
-inline PROTOBUF_NDEBUG_INLINE SlideSegmentationData::Impl_::Impl_(
-    ::google::protobuf::internal::InternalVisibility visibility,
-    ::google::protobuf::Arena* arena)
-      : _cached_size_{0},
-        tiles_{visibility, arena},
-        tissue_class_mapping_{visibility, arena},
-        slide_id_(arena),
-        slide_path_(arena),
-        cell_model_name_(arena),
-        tissue_model_name_(arena) {}
-
-inline void SlideSegmentationData::SharedCtor(::_pb::Arena* arena) {
-  new (&_impl_) Impl_(internal_visibility(), arena);
-  ::memset(reinterpret_cast<char *>(&_impl_) +
-               offsetof(Impl_, mpp_),
-           0,
-           offsetof(Impl_, tissue_empty_class_) -
-               offsetof(Impl_, mpp_) +
-               sizeof(Impl_::tissue_empty_class_));
-}
-SlideSegmentationData::~SlideSegmentationData() {
-  // @@protoc_insertion_point(destructor:DataProtoPolygon.SlideSegmentationData)
-  SharedDtor(*this);
-}
-inline void SlideSegmentationData::SharedDtor(MessageLite& self) {
-  SlideSegmentationData& this_ = static_cast<SlideSegmentationData&>(self);
-  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
-  ABSL_DCHECK(this_.GetArena() == nullptr);
-  this_._impl_.slide_id_.Destroy();
-  this_._impl_.slide_path_.Destroy();
-  this_._impl_.cell_model_name_.Destroy();
-  this_._impl_.tissue_model_name_.Destroy();
-  this_._impl_.~Impl_();
-}
-
-inline void* SlideSegmentationData::PlacementNew_(const void*, void* mem,
-                                        ::google::protobuf::Arena* arena) {
-  return ::new (mem) SlideSegmentationData(arena);
-}
-constexpr auto SlideSegmentationData::InternalNewImpl_() {
-  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
-      PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tiles_) +
-          decltype(SlideSegmentationData::_impl_.tiles_)::
-              InternalGetArenaOffset(
-                  ::google::protobuf::Message::internal_visibility()),
-      PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_class_mapping_) +
-          decltype(SlideSegmentationData::_impl_.tissue_class_mapping_)::
-              InternalGetArenaOffset(
-                  ::google::protobuf::Message::internal_visibility()),
-      PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_class_mapping_) +
-          decltype(SlideSegmentationData::_impl_.tissue_class_mapping_)::
-              InternalGetArenaOffsetAlt(
-                  ::google::protobuf::Message::internal_visibility()),
-  });
-  if (arena_bits.has_value()) {
-    return ::google::protobuf::internal::MessageCreator::CopyInit(
-        sizeof(SlideSegmentationData), alignof(SlideSegmentationData), *arena_bits);
-  } else {
-    return ::google::protobuf::internal::MessageCreator(&SlideSegmentationData::PlacementNew_,
-                                 sizeof(SlideSegmentationData),
-                                 alignof(SlideSegmentationData));
-  }
-}
-PROTOBUF_CONSTINIT
-PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::google::protobuf::internal::ClassDataFull SlideSegmentationData::_class_data_ = {
-    ::google::protobuf::internal::ClassData{
-        &_SlideSegmentationData_default_instance_._instance,
-        &_table_.header,
-        nullptr,  // OnDemandRegisterArenaDtor
-        SlideSegmentationData::IsInitializedImpl,
-        &SlideSegmentationData::MergeImpl,
-        ::google::protobuf::Message::GetNewImpl<SlideSegmentationData>(),
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-        &SlideSegmentationData::SharedDtor,
-        ::google::protobuf::Message::GetClearImpl<SlideSegmentationData>(), &SlideSegmentationData::ByteSizeLong,
-            &SlideSegmentationData::_InternalSerialize,
-#endif  // PROTOBUF_CUSTOM_VTABLE
-        PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_._cached_size_),
-        false,
-    },
-    &SlideSegmentationData::kDescriptorMethods,
-    &descriptor_table_cell_5fpolygons_2eproto,
-    nullptr,  // tracker
-};
-const ::google::protobuf::internal::ClassData* SlideSegmentationData::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
-  return _class_data_.base();
-}
-PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 9, 2, 125, 2> SlideSegmentationData::_table_ = {
-  {
-    PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_._has_bits_),
-    0, // no _extensions_
-    9, 56,  // max_field_number, fast_idx_mask
-    offsetof(decltype(_table_), field_lookup_table),
-    4294966784,  // skipmap
-    offsetof(decltype(_table_), field_entries),
-    9,  // num_field_entries
-    2,  // num_aux_entries
-    offsetof(decltype(_table_), aux_entries),
-    _class_data_.base(),
-    nullptr,  // post_loop_handler
-    ::_pbi::TcParser::GenericFallback,  // fallback
-    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::DataProtoPolygon::SlideSegmentationData>(),  // to_prefetch
-    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
-  }, {{
-    // repeated .DataProtoPolygon.TileSegmentationData tiles = 8;
-    {::_pbi::TcParser::FastMtR1,
-     {66, 63, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tiles_)}},
-    // required string slide_id = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.slide_id_)}},
-    // required string slide_path = 2;
-    {::_pbi::TcParser::FastSS1,
-     {18, 1, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.slide_path_)}},
-    // required float mpp = 3;
-    {::_pbi::TcParser::FastF32S1,
-     {29, 4, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.mpp_)}},
-    // required int32 max_level = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SlideSegmentationData, _impl_.max_level_), 5>(),
-     {32, 5, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.max_level_)}},
-    // required string cell_model_name = 5;
-    {::_pbi::TcParser::FastSS1,
-     {42, 2, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.cell_model_name_)}},
-    // required string tissue_model_name = 6;
-    {::_pbi::TcParser::FastSS1,
-     {50, 3, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_model_name_)}},
-    // required int32 tissue_empty_class = 7;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SlideSegmentationData, _impl_.tissue_empty_class_), 6>(),
-     {56, 6, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_empty_class_)}},
-  }}, {{
-    65535, 65535
-  }}, {{
-    // required string slide_id = 1;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.slide_id_), _Internal::kHasBitsOffset + 0, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
-    // required string slide_path = 2;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.slide_path_), _Internal::kHasBitsOffset + 1, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
-    // required float mpp = 3;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.mpp_), _Internal::kHasBitsOffset + 4, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
-    // required int32 max_level = 4;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.max_level_), _Internal::kHasBitsOffset + 5, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
-    // required string cell_model_name = 5;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.cell_model_name_), _Internal::kHasBitsOffset + 2, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
-    // required string tissue_model_name = 6;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_model_name_), _Internal::kHasBitsOffset + 3, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
-    // required int32 tissue_empty_class = 7;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_empty_class_), _Internal::kHasBitsOffset + 6, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
-    // repeated .DataProtoPolygon.TileSegmentationData tiles = 8;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tiles_), -1, 0,
-    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-    // map<int32, string> tissue_class_mapping = 9;
-    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_class_mapping_), -1, 1,
-    (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
-  }}, {{
-    {::_pbi::TcParser::GetTable<::DataProtoPolygon::TileSegmentationData>()},
-    {::_pbi::TcParser::GetMapAuxInfo<
-        decltype(SlideSegmentationData()._impl_.tissue_class_mapping_)>(
-        0, 1, 0, 5,
-        9)},
-  }}, {{
-    "\46\10\12\0\0\17\21\0\0\24\0\0\0\0\0\0"
-    "DataProtoPolygon.SlideSegmentationData"
-    "slide_id"
-    "slide_path"
-    "cell_model_name"
-    "tissue_model_name"
-    "tissue_class_mapping"
-  }},
-};
-
-PROTOBUF_NOINLINE void SlideSegmentationData::Clear() {
-// @@protoc_insertion_point(message_clear_start:DataProtoPolygon.SlideSegmentationData)
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _impl_.tiles_.Clear();
-  _impl_.tissue_class_mapping_.Clear();
-  cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x0000000fu) {
-    if (cached_has_bits & 0x00000001u) {
-      _impl_.slide_id_.ClearNonDefaultToEmpty();
-    }
-    if (cached_has_bits & 0x00000002u) {
-      _impl_.slide_path_.ClearNonDefaultToEmpty();
-    }
-    if (cached_has_bits & 0x00000004u) {
-      _impl_.cell_model_name_.ClearNonDefaultToEmpty();
-    }
-    if (cached_has_bits & 0x00000008u) {
-      _impl_.tissue_model_name_.ClearNonDefaultToEmpty();
-    }
-  }
-  if (cached_has_bits & 0x00000070u) {
-    ::memset(&_impl_.mpp_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.tissue_empty_class_) -
-        reinterpret_cast<char*>(&_impl_.mpp_)) + sizeof(_impl_.tissue_empty_class_));
-  }
-  _impl_._has_bits_.Clear();
-  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
-}
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-        ::uint8_t* SlideSegmentationData::_InternalSerialize(
-            const MessageLite& base, ::uint8_t* target,
-            ::google::protobuf::io::EpsCopyOutputStream* stream) {
-          const SlideSegmentationData& this_ = static_cast<const SlideSegmentationData&>(base);
-#else   // PROTOBUF_CUSTOM_VTABLE
-        ::uint8_t* SlideSegmentationData::_InternalSerialize(
-            ::uint8_t* target,
-            ::google::protobuf::io::EpsCopyOutputStream* stream) const {
-          const SlideSegmentationData& this_ = *this;
-#endif  // PROTOBUF_CUSTOM_VTABLE
-          // @@protoc_insertion_point(serialize_to_array_start:DataProtoPolygon.SlideSegmentationData)
-          ::uint32_t cached_has_bits = 0;
-          (void)cached_has_bits;
-
-          cached_has_bits = this_._impl_._has_bits_[0];
-          // required string slide_id = 1;
-          if (cached_has_bits & 0x00000001u) {
-            const std::string& _s = this_._internal_slide_id();
-            ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(_s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormat::SERIALIZE,
-                                        "DataProtoPolygon.SlideSegmentationData.slide_id");
-            target = stream->WriteStringMaybeAliased(1, _s, target);
-          }
-
-          // required string slide_path = 2;
-          if (cached_has_bits & 0x00000002u) {
-            const std::string& _s = this_._internal_slide_path();
-            ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(_s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormat::SERIALIZE,
-                                        "DataProtoPolygon.SlideSegmentationData.slide_path");
-            target = stream->WriteStringMaybeAliased(2, _s, target);
-          }
-
-          // required float mpp = 3;
-          if (cached_has_bits & 0x00000010u) {
-            target = stream->EnsureSpace(target);
-            target = ::_pbi::WireFormatLite::WriteFloatToArray(
-                3, this_._internal_mpp(), target);
-          }
-
-          // required int32 max_level = 4;
-          if (cached_has_bits & 0x00000020u) {
-            target = ::google::protobuf::internal::WireFormatLite::
-                WriteInt32ToArrayWithField<4>(
-                    stream, this_._internal_max_level(), target);
-          }
-
-          // required string cell_model_name = 5;
-          if (cached_has_bits & 0x00000004u) {
-            const std::string& _s = this_._internal_cell_model_name();
-            ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(_s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormat::SERIALIZE,
-                                        "DataProtoPolygon.SlideSegmentationData.cell_model_name");
-            target = stream->WriteStringMaybeAliased(5, _s, target);
-          }
-
-          // required string tissue_model_name = 6;
-          if (cached_has_bits & 0x00000008u) {
-            const std::string& _s = this_._internal_tissue_model_name();
-            ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(_s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormat::SERIALIZE,
-                                        "DataProtoPolygon.SlideSegmentationData.tissue_model_name");
-            target = stream->WriteStringMaybeAliased(6, _s, target);
-          }
-
-          // required int32 tissue_empty_class = 7;
-          if (cached_has_bits & 0x00000040u) {
-            target = ::google::protobuf::internal::WireFormatLite::
-                WriteInt32ToArrayWithField<7>(
-                    stream, this_._internal_tissue_empty_class(), target);
-          }
-
-          // repeated .DataProtoPolygon.TileSegmentationData tiles = 8;
-          for (unsigned i = 0, n = static_cast<unsigned>(
-                                   this_._internal_tiles_size());
-               i < n; i++) {
-            const auto& repfield = this_._internal_tiles().Get(i);
-            target =
-                ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
-                    8, repfield, repfield.GetCachedSize(),
-                    target, stream);
-          }
-
-          // map<int32, string> tissue_class_mapping = 9;
-          if (!this_._internal_tissue_class_mapping().empty()) {
-            using MapType = ::google::protobuf::Map<::int32_t, std::string>;
-            using WireHelper = _pbi::MapEntryFuncs<::int32_t, std::string,
-                                           _pbi::WireFormatLite::TYPE_INT32,
-                                           _pbi::WireFormatLite::TYPE_STRING>;
-            const auto& field = this_._internal_tissue_class_mapping();
-
-            if (stream->IsSerializationDeterministic() && field.size() > 1) {
-              for (const auto& entry : ::google::protobuf::internal::MapSorterFlat<MapType>(field)) {
-                target = WireHelper::InternalSerialize(
-                    9, entry.first, entry.second, target, stream);
-                ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(entry.second.data(), static_cast<int>(entry.second.length()),
- ::google::protobuf::internal::WireFormat::SERIALIZE,
-                                            "DataProtoPolygon.SlideSegmentationData.tissue_class_mapping");
-              }
-            } else {
-              for (const auto& entry : field) {
-                target = WireHelper::InternalSerialize(
-                    9, entry.first, entry.second, target, stream);
-                ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(entry.second.data(), static_cast<int>(entry.second.length()),
- ::google::protobuf::internal::WireFormat::SERIALIZE,
-                                            "DataProtoPolygon.SlideSegmentationData.tissue_class_mapping");
-              }
-            }
-          }
-
-          if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
-            target =
-                ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-                    this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-          }
-          // @@protoc_insertion_point(serialize_to_array_end:DataProtoPolygon.SlideSegmentationData)
-          return target;
-        }
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-        ::size_t SlideSegmentationData::ByteSizeLong(const MessageLite& base) {
-          const SlideSegmentationData& this_ = static_cast<const SlideSegmentationData&>(base);
-#else   // PROTOBUF_CUSTOM_VTABLE
-        ::size_t SlideSegmentationData::ByteSizeLong() const {
-          const SlideSegmentationData& this_ = *this;
-#endif  // PROTOBUF_CUSTOM_VTABLE
-          // @@protoc_insertion_point(message_byte_size_start:DataProtoPolygon.SlideSegmentationData)
-          ::size_t total_size = 0;
-
-          ::uint32_t cached_has_bits = 0;
-          // Prevent compiler warnings about cached_has_bits being unused
-          (void)cached_has_bits;
-
-          ::_pbi::Prefetch5LinesFrom7Lines(&this_);
-           {
-            // repeated .DataProtoPolygon.TileSegmentationData tiles = 8;
-            {
-              total_size += 1UL * this_._internal_tiles_size();
-              for (const auto& msg : this_._internal_tiles()) {
-                total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
-              }
-            }
-            // map<int32, string> tissue_class_mapping = 9;
-            {
-              total_size +=
-                  1 * ::google::protobuf::internal::FromIntSize(this_._internal_tissue_class_mapping_size());
-              for (const auto& entry : this_._internal_tissue_class_mapping()) {
-                total_size += _pbi::MapEntryFuncs<::int32_t, std::string,
-                                               _pbi::WireFormatLite::TYPE_INT32,
-                                               _pbi::WireFormatLite::TYPE_STRING>::ByteSizeLong(entry.first, entry.second);
-              }
-            }
-          }
-          cached_has_bits = this_._impl_._has_bits_[0];
-          if (cached_has_bits & 0x0000007fu) {
-            // required string slide_id = 1;
-            if (cached_has_bits & 0x00000001u) {
-              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                              this_._internal_slide_id());
-            }
-            // required string slide_path = 2;
-            if (cached_has_bits & 0x00000002u) {
-              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                              this_._internal_slide_path());
-            }
-            // required string cell_model_name = 5;
-            if (cached_has_bits & 0x00000004u) {
-              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                              this_._internal_cell_model_name());
-            }
-            // required string tissue_model_name = 6;
-            if (cached_has_bits & 0x00000008u) {
-              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                              this_._internal_tissue_model_name());
-            }
-            // required float mpp = 3;
-            if (cached_has_bits & 0x00000010u) {
-              total_size += 5;
-            }
-            // required int32 max_level = 4;
-            if (cached_has_bits & 0x00000020u) {
-              total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
-                  this_._internal_max_level());
-            }
-            // required int32 tissue_empty_class = 7;
-            if (cached_has_bits & 0x00000040u) {
-              total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
-                  this_._internal_tissue_empty_class());
-            }
-          }
-          return this_.MaybeComputeUnknownFieldsSize(total_size,
-                                                     &this_._impl_._cached_size_);
-        }
-
-void SlideSegmentationData::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
-  auto* const _this = static_cast<SlideSegmentationData*>(&to_msg);
-  auto& from = static_cast<const SlideSegmentationData&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:DataProtoPolygon.SlideSegmentationData)
-  ABSL_DCHECK_NE(&from, _this);
-  ::uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  _this->_internal_mutable_tiles()->MergeFrom(
-      from._internal_tiles());
-  _this->_impl_.tissue_class_mapping_.MergeFrom(from._impl_.tissue_class_mapping_);
-  cached_has_bits = from._impl_._has_bits_[0];
-  if (cached_has_bits & 0x0000007fu) {
-    if (cached_has_bits & 0x00000001u) {
-      _this->_internal_set_slide_id(from._internal_slide_id());
-    }
-    if (cached_has_bits & 0x00000002u) {
-      _this->_internal_set_slide_path(from._internal_slide_path());
-    }
-    if (cached_has_bits & 0x00000004u) {
-      _this->_internal_set_cell_model_name(from._internal_cell_model_name());
-    }
-    if (cached_has_bits & 0x00000008u) {
-      _this->_internal_set_tissue_model_name(from._internal_tissue_model_name());
-    }
-    if (cached_has_bits & 0x00000010u) {
-      _this->_impl_.mpp_ = from._impl_.mpp_;
-    }
-    if (cached_has_bits & 0x00000020u) {
-      _this->_impl_.max_level_ = from._impl_.max_level_;
-    }
-    if (cached_has_bits & 0x00000040u) {
-      _this->_impl_.tissue_empty_class_ = from._impl_.tissue_empty_class_;
-    }
-  }
-  _this->_impl_._has_bits_[0] |= cached_has_bits;
-  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
-}
-
-void SlideSegmentationData::CopyFrom(const SlideSegmentationData& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:DataProtoPolygon.SlideSegmentationData)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-PROTOBUF_NOINLINE bool SlideSegmentationData::IsInitializedImpl(
-    const MessageLite& msg) {
-  auto& this_ = static_cast<const SlideSegmentationData&>(msg);
-  if (_Internal::MissingRequiredFields(this_._impl_._has_bits_)) {
-    return false;
-  }
-  if (!::google::protobuf::internal::AllAreInitialized(this_._internal_tiles()))
-    return false;
-  return true;
-}
-
-void SlideSegmentationData::InternalSwap(SlideSegmentationData* PROTOBUF_RESTRICT other) {
-  using std::swap;
-  auto* arena = GetArena();
-  ABSL_DCHECK_EQ(arena, other->GetArena());
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  _impl_.tiles_.InternalSwap(&other->_impl_.tiles_);
-  _impl_.tissue_class_mapping_.InternalSwap(&other->_impl_.tissue_class_mapping_);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.slide_id_, &other->_impl_.slide_id_, arena);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.slide_path_, &other->_impl_.slide_path_, arena);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.cell_model_name_, &other->_impl_.cell_model_name_, arena);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.tissue_model_name_, &other->_impl_.tissue_model_name_, arena);
-  ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_empty_class_)
-      + sizeof(SlideSegmentationData::_impl_.tissue_empty_class_)
-      - PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.mpp_)>(
-          reinterpret_cast<char*>(&_impl_.mpp_),
-          reinterpret_cast<char*>(&other->_impl_.mpp_));
-}
-
-::google::protobuf::Metadata SlideSegmentationData::GetMetadata() const {
-  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
-}
-// ===================================================================
-
 class TissueSegmentationMap::_Internal {
  public:
   using HasBits =
@@ -2527,6 +1892,617 @@ void TissueSegmentationMap::InternalSwap(TissueSegmentationMap* PROTOBUF_RESTRIC
 }
 
 ::google::protobuf::Metadata TissueSegmentationMap::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+              SlideSegmentationData_TissueClassMappingEntry_DoNotUse::SlideSegmentationData_TissueClassMappingEntry_DoNotUse() : SuperType(_class_data_.base()) {}
+              SlideSegmentationData_TissueClassMappingEntry_DoNotUse::SlideSegmentationData_TissueClassMappingEntry_DoNotUse(::google::protobuf::Arena* arena)
+                  : SuperType(arena, _class_data_.base()) {}
+#else   // PROTOBUF_CUSTOM_VTABLE
+              SlideSegmentationData_TissueClassMappingEntry_DoNotUse::SlideSegmentationData_TissueClassMappingEntry_DoNotUse() : SuperType() {}
+              SlideSegmentationData_TissueClassMappingEntry_DoNotUse::SlideSegmentationData_TissueClassMappingEntry_DoNotUse(::google::protobuf::Arena* arena) : SuperType(arena) {}
+#endif  // PROTOBUF_CUSTOM_VTABLE
+              inline void* SlideSegmentationData_TissueClassMappingEntry_DoNotUse::PlacementNew_(const void*, void* mem,
+                                                      ::google::protobuf::Arena* arena) {
+                return ::new (mem) SlideSegmentationData_TissueClassMappingEntry_DoNotUse(arena);
+              }
+              constexpr auto SlideSegmentationData_TissueClassMappingEntry_DoNotUse::InternalNewImpl_() {
+                return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(SlideSegmentationData_TissueClassMappingEntry_DoNotUse),
+                                                          alignof(SlideSegmentationData_TissueClassMappingEntry_DoNotUse));
+              }
+              PROTOBUF_CONSTINIT
+              PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+              const ::google::protobuf::internal::ClassDataFull SlideSegmentationData_TissueClassMappingEntry_DoNotUse::_class_data_ = {
+                  ::google::protobuf::internal::ClassData{
+                      &_SlideSegmentationData_TissueClassMappingEntry_DoNotUse_default_instance_._instance,
+                      &_table_.header,
+                      nullptr,  // OnDemandRegisterArenaDtor
+                      nullptr,  // IsInitialized
+                      &SlideSegmentationData_TissueClassMappingEntry_DoNotUse::MergeImpl,
+                      ::google::protobuf::Message::GetNewImpl<SlideSegmentationData_TissueClassMappingEntry_DoNotUse>(),
+              #if defined(PROTOBUF_CUSTOM_VTABLE)
+                      &SlideSegmentationData_TissueClassMappingEntry_DoNotUse::SharedDtor,
+                      static_cast<void (::google::protobuf::MessageLite::*)()>(
+                          &SlideSegmentationData_TissueClassMappingEntry_DoNotUse::ClearImpl),
+                          ::google::protobuf::Message::ByteSizeLongImpl, ::google::protobuf::Message::_InternalSerializeImpl
+                          ,
+              #endif  // PROTOBUF_CUSTOM_VTABLE
+                      PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_._cached_size_),
+                      false,
+                  },
+                  &SlideSegmentationData_TissueClassMappingEntry_DoNotUse::kDescriptorMethods,
+                  &descriptor_table_cell_5fpolygons_2eproto,
+                  nullptr,  // tracker
+              };
+              const ::google::protobuf::internal::ClassData* SlideSegmentationData_TissueClassMappingEntry_DoNotUse::GetClassData() const {
+                ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
+                ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
+                return _class_data_.base();
+              }
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 76, 2> SlideSegmentationData_TissueClassMappingEntry_DoNotUse::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    _class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::DiscardEverythingFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::DataProtoPolygon::SlideSegmentationData_TissueClassMappingEntry_DoNotUse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // optional string value = 2;
+    {::_pbi::TcParser::FastSS1,
+     {18, 0, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_.value_)}},
+    // optional int32 key = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_.key_), 1>(),
+     {8, 1, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_.key_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // optional int32 key = 1;
+    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_.key_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // optional string value = 2;
+    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData_TissueClassMappingEntry_DoNotUse, _impl_.value_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\76\0\5\0\0\0\0\0"
+    "DataProtoPolygon.SlideSegmentationData.TissueClassMappingEntry"
+    "value"
+  }},
+};
+
+// ===================================================================
+
+class SlideSegmentationData::_Internal {
+ public:
+  using HasBits =
+      decltype(std::declval<SlideSegmentationData>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_._has_bits_);
+  static bool MissingRequiredFields(const HasBits& has_bits) {
+    return ((has_bits[0] & 0x0000003f) ^ 0x0000003f) != 0;
+  }
+};
+
+SlideSegmentationData::SlideSegmentationData(::google::protobuf::Arena* arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, _class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:DataProtoPolygon.SlideSegmentationData)
+}
+inline PROTOBUF_NDEBUG_INLINE SlideSegmentationData::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from, const ::DataProtoPolygon::SlideSegmentationData& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        tiles_{visibility, arena, from.tiles_},
+        tissue_class_mapping_{visibility, arena, from.tissue_class_mapping_},
+        slide_id_(arena, from.slide_id_),
+        slide_path_(arena, from.slide_path_),
+        cell_model_name_(arena, from.cell_model_name_),
+        tissue_model_name_(arena, from.tissue_model_name_) {}
+
+SlideSegmentationData::SlideSegmentationData(
+    ::google::protobuf::Arena* arena,
+    const SlideSegmentationData& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, _class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SlideSegmentationData* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, mpp_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, mpp_),
+           offsetof(Impl_, max_level_) -
+               offsetof(Impl_, mpp_) +
+               sizeof(Impl_::max_level_));
+
+  // @@protoc_insertion_point(copy_constructor:DataProtoPolygon.SlideSegmentationData)
+}
+inline PROTOBUF_NDEBUG_INLINE SlideSegmentationData::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : _cached_size_{0},
+        tiles_{visibility, arena},
+        tissue_class_mapping_{visibility, arena},
+        slide_id_(arena),
+        slide_path_(arena),
+        cell_model_name_(arena),
+        tissue_model_name_(arena) {}
+
+inline void SlideSegmentationData::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, mpp_),
+           0,
+           offsetof(Impl_, max_level_) -
+               offsetof(Impl_, mpp_) +
+               sizeof(Impl_::max_level_));
+}
+SlideSegmentationData::~SlideSegmentationData() {
+  // @@protoc_insertion_point(destructor:DataProtoPolygon.SlideSegmentationData)
+  SharedDtor(*this);
+}
+inline void SlideSegmentationData::SharedDtor(MessageLite& self) {
+  SlideSegmentationData& this_ = static_cast<SlideSegmentationData&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.slide_id_.Destroy();
+  this_._impl_.slide_path_.Destroy();
+  this_._impl_.cell_model_name_.Destroy();
+  this_._impl_.tissue_model_name_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* SlideSegmentationData::PlacementNew_(const void*, void* mem,
+                                        ::google::protobuf::Arena* arena) {
+  return ::new (mem) SlideSegmentationData(arena);
+}
+constexpr auto SlideSegmentationData::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tiles_) +
+          decltype(SlideSegmentationData::_impl_.tiles_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_class_mapping_) +
+          decltype(SlideSegmentationData::_impl_.tissue_class_mapping_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_class_mapping_) +
+          decltype(SlideSegmentationData::_impl_.tissue_class_mapping_)::
+              InternalGetArenaOffsetAlt(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::CopyInit(
+        sizeof(SlideSegmentationData), alignof(SlideSegmentationData), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&SlideSegmentationData::PlacementNew_,
+                                 sizeof(SlideSegmentationData),
+                                 alignof(SlideSegmentationData));
+  }
+}
+PROTOBUF_CONSTINIT
+PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::google::protobuf::internal::ClassDataFull SlideSegmentationData::_class_data_ = {
+    ::google::protobuf::internal::ClassData{
+        &_SlideSegmentationData_default_instance_._instance,
+        &_table_.header,
+        nullptr,  // OnDemandRegisterArenaDtor
+        SlideSegmentationData::IsInitializedImpl,
+        &SlideSegmentationData::MergeImpl,
+        ::google::protobuf::Message::GetNewImpl<SlideSegmentationData>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        &SlideSegmentationData::SharedDtor,
+        ::google::protobuf::Message::GetClearImpl<SlideSegmentationData>(), &SlideSegmentationData::ByteSizeLong,
+            &SlideSegmentationData::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+        PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_._cached_size_),
+        false,
+    },
+    &SlideSegmentationData::kDescriptorMethods,
+    &descriptor_table_cell_5fpolygons_2eproto,
+    nullptr,  // tracker
+};
+const ::google::protobuf::internal::ClassData* SlideSegmentationData::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
+  return _class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<3, 8, 2, 125, 2> SlideSegmentationData::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_._has_bits_),
+    0, // no _extensions_
+    9, 56,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294966848,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    8,  // num_field_entries
+    2,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    _class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::DataProtoPolygon::SlideSegmentationData>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // repeated .DataProtoPolygon.TileSegmentationData tiles = 8;
+    {::_pbi::TcParser::FastMtR1,
+     {66, 63, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tiles_)}},
+    // required string slide_id = 1;
+    {::_pbi::TcParser::FastSS1,
+     {10, 0, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.slide_id_)}},
+    // required string slide_path = 2;
+    {::_pbi::TcParser::FastSS1,
+     {18, 1, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.slide_path_)}},
+    // required float mpp = 3;
+    {::_pbi::TcParser::FastF32S1,
+     {29, 4, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.mpp_)}},
+    // required int32 max_level = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SlideSegmentationData, _impl_.max_level_), 5>(),
+     {32, 5, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.max_level_)}},
+    // required string cell_model_name = 5;
+    {::_pbi::TcParser::FastSS1,
+     {42, 2, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.cell_model_name_)}},
+    // required string tissue_model_name = 6;
+    {::_pbi::TcParser::FastSS1,
+     {50, 3, 0, PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_model_name_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // required string slide_id = 1;
+    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.slide_id_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
+    // required string slide_path = 2;
+    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.slide_path_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
+    // required float mpp = 3;
+    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.mpp_), _Internal::kHasBitsOffset + 4, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // required int32 max_level = 4;
+    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.max_level_), _Internal::kHasBitsOffset + 5, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // required string cell_model_name = 5;
+    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.cell_model_name_), _Internal::kHasBitsOffset + 2, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
+    // required string tissue_model_name = 6;
+    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_model_name_), _Internal::kHasBitsOffset + 3, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
+    // repeated .DataProtoPolygon.TileSegmentationData tiles = 8;
+    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tiles_), -1, 0,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // map<int32, string> tissue_class_mapping = 9;
+    {PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.tissue_class_mapping_), -1, 1,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
+  }}, {{
+    {::_pbi::TcParser::GetTable<::DataProtoPolygon::TileSegmentationData>()},
+    {::_pbi::TcParser::GetMapAuxInfo<
+        decltype(SlideSegmentationData()._impl_.tissue_class_mapping_)>(
+        0, 1, 0, 5,
+        9)},
+  }}, {{
+    "\46\10\12\0\0\17\21\0\24\0\0\0\0\0\0\0"
+    "DataProtoPolygon.SlideSegmentationData"
+    "slide_id"
+    "slide_path"
+    "cell_model_name"
+    "tissue_model_name"
+    "tissue_class_mapping"
+  }},
+};
+
+PROTOBUF_NOINLINE void SlideSegmentationData::Clear() {
+// @@protoc_insertion_point(message_clear_start:DataProtoPolygon.SlideSegmentationData)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.tiles_.Clear();
+  _impl_.tissue_class_mapping_.Clear();
+  cached_has_bits = _impl_._has_bits_[0];
+  if (cached_has_bits & 0x0000000fu) {
+    if (cached_has_bits & 0x00000001u) {
+      _impl_.slide_id_.ClearNonDefaultToEmpty();
+    }
+    if (cached_has_bits & 0x00000002u) {
+      _impl_.slide_path_.ClearNonDefaultToEmpty();
+    }
+    if (cached_has_bits & 0x00000004u) {
+      _impl_.cell_model_name_.ClearNonDefaultToEmpty();
+    }
+    if (cached_has_bits & 0x00000008u) {
+      _impl_.tissue_model_name_.ClearNonDefaultToEmpty();
+    }
+  }
+  if (cached_has_bits & 0x00000030u) {
+    ::memset(&_impl_.mpp_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.max_level_) -
+        reinterpret_cast<char*>(&_impl_.mpp_)) + sizeof(_impl_.max_level_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        ::uint8_t* SlideSegmentationData::_InternalSerialize(
+            const MessageLite& base, ::uint8_t* target,
+            ::google::protobuf::io::EpsCopyOutputStream* stream) {
+          const SlideSegmentationData& this_ = static_cast<const SlideSegmentationData&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+        ::uint8_t* SlideSegmentationData::_InternalSerialize(
+            ::uint8_t* target,
+            ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+          const SlideSegmentationData& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          // @@protoc_insertion_point(serialize_to_array_start:DataProtoPolygon.SlideSegmentationData)
+          ::uint32_t cached_has_bits = 0;
+          (void)cached_has_bits;
+
+          cached_has_bits = this_._impl_._has_bits_[0];
+          // required string slide_id = 1;
+          if (cached_has_bits & 0x00000001u) {
+            const std::string& _s = this_._internal_slide_id();
+            ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(_s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormat::SERIALIZE,
+                                        "DataProtoPolygon.SlideSegmentationData.slide_id");
+            target = stream->WriteStringMaybeAliased(1, _s, target);
+          }
+
+          // required string slide_path = 2;
+          if (cached_has_bits & 0x00000002u) {
+            const std::string& _s = this_._internal_slide_path();
+            ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(_s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormat::SERIALIZE,
+                                        "DataProtoPolygon.SlideSegmentationData.slide_path");
+            target = stream->WriteStringMaybeAliased(2, _s, target);
+          }
+
+          // required float mpp = 3;
+          if (cached_has_bits & 0x00000010u) {
+            target = stream->EnsureSpace(target);
+            target = ::_pbi::WireFormatLite::WriteFloatToArray(
+                3, this_._internal_mpp(), target);
+          }
+
+          // required int32 max_level = 4;
+          if (cached_has_bits & 0x00000020u) {
+            target = ::google::protobuf::internal::WireFormatLite::
+                WriteInt32ToArrayWithField<4>(
+                    stream, this_._internal_max_level(), target);
+          }
+
+          // required string cell_model_name = 5;
+          if (cached_has_bits & 0x00000004u) {
+            const std::string& _s = this_._internal_cell_model_name();
+            ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(_s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormat::SERIALIZE,
+                                        "DataProtoPolygon.SlideSegmentationData.cell_model_name");
+            target = stream->WriteStringMaybeAliased(5, _s, target);
+          }
+
+          // required string tissue_model_name = 6;
+          if (cached_has_bits & 0x00000008u) {
+            const std::string& _s = this_._internal_tissue_model_name();
+            ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(_s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormat::SERIALIZE,
+                                        "DataProtoPolygon.SlideSegmentationData.tissue_model_name");
+            target = stream->WriteStringMaybeAliased(6, _s, target);
+          }
+
+          // repeated .DataProtoPolygon.TileSegmentationData tiles = 8;
+          for (unsigned i = 0, n = static_cast<unsigned>(
+                                   this_._internal_tiles_size());
+               i < n; i++) {
+            const auto& repfield = this_._internal_tiles().Get(i);
+            target =
+                ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+                    8, repfield, repfield.GetCachedSize(),
+                    target, stream);
+          }
+
+          // map<int32, string> tissue_class_mapping = 9;
+          if (!this_._internal_tissue_class_mapping().empty()) {
+            using MapType = ::google::protobuf::Map<::int32_t, std::string>;
+            using WireHelper = _pbi::MapEntryFuncs<::int32_t, std::string,
+                                           _pbi::WireFormatLite::TYPE_INT32,
+                                           _pbi::WireFormatLite::TYPE_STRING>;
+            const auto& field = this_._internal_tissue_class_mapping();
+
+            if (stream->IsSerializationDeterministic() && field.size() > 1) {
+              for (const auto& entry : ::google::protobuf::internal::MapSorterFlat<MapType>(field)) {
+                target = WireHelper::InternalSerialize(
+                    9, entry.first, entry.second, target, stream);
+                ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(entry.second.data(), static_cast<int>(entry.second.length()),
+ ::google::protobuf::internal::WireFormat::SERIALIZE,
+                                            "DataProtoPolygon.SlideSegmentationData.tissue_class_mapping");
+              }
+            } else {
+              for (const auto& entry : field) {
+                target = WireHelper::InternalSerialize(
+                    9, entry.first, entry.second, target, stream);
+                ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(entry.second.data(), static_cast<int>(entry.second.length()),
+ ::google::protobuf::internal::WireFormat::SERIALIZE,
+                                            "DataProtoPolygon.SlideSegmentationData.tissue_class_mapping");
+              }
+            }
+          }
+
+          if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+            target =
+                ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+                    this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+          }
+          // @@protoc_insertion_point(serialize_to_array_end:DataProtoPolygon.SlideSegmentationData)
+          return target;
+        }
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        ::size_t SlideSegmentationData::ByteSizeLong(const MessageLite& base) {
+          const SlideSegmentationData& this_ = static_cast<const SlideSegmentationData&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+        ::size_t SlideSegmentationData::ByteSizeLong() const {
+          const SlideSegmentationData& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          // @@protoc_insertion_point(message_byte_size_start:DataProtoPolygon.SlideSegmentationData)
+          ::size_t total_size = 0;
+
+          ::uint32_t cached_has_bits = 0;
+          // Prevent compiler warnings about cached_has_bits being unused
+          (void)cached_has_bits;
+
+          ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+           {
+            // repeated .DataProtoPolygon.TileSegmentationData tiles = 8;
+            {
+              total_size += 1UL * this_._internal_tiles_size();
+              for (const auto& msg : this_._internal_tiles()) {
+                total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+              }
+            }
+            // map<int32, string> tissue_class_mapping = 9;
+            {
+              total_size +=
+                  1 * ::google::protobuf::internal::FromIntSize(this_._internal_tissue_class_mapping_size());
+              for (const auto& entry : this_._internal_tissue_class_mapping()) {
+                total_size += _pbi::MapEntryFuncs<::int32_t, std::string,
+                                               _pbi::WireFormatLite::TYPE_INT32,
+                                               _pbi::WireFormatLite::TYPE_STRING>::ByteSizeLong(entry.first, entry.second);
+              }
+            }
+          }
+          cached_has_bits = this_._impl_._has_bits_[0];
+          if (cached_has_bits & 0x0000003fu) {
+            // required string slide_id = 1;
+            if (cached_has_bits & 0x00000001u) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                              this_._internal_slide_id());
+            }
+            // required string slide_path = 2;
+            if (cached_has_bits & 0x00000002u) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                              this_._internal_slide_path());
+            }
+            // required string cell_model_name = 5;
+            if (cached_has_bits & 0x00000004u) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                              this_._internal_cell_model_name());
+            }
+            // required string tissue_model_name = 6;
+            if (cached_has_bits & 0x00000008u) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                              this_._internal_tissue_model_name());
+            }
+            // required float mpp = 3;
+            if (cached_has_bits & 0x00000010u) {
+              total_size += 5;
+            }
+            // required int32 max_level = 4;
+            if (cached_has_bits & 0x00000020u) {
+              total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+                  this_._internal_max_level());
+            }
+          }
+          return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                                     &this_._impl_._cached_size_);
+        }
+
+void SlideSegmentationData::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<SlideSegmentationData*>(&to_msg);
+  auto& from = static_cast<const SlideSegmentationData&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:DataProtoPolygon.SlideSegmentationData)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_internal_mutable_tiles()->MergeFrom(
+      from._internal_tiles());
+  _this->_impl_.tissue_class_mapping_.MergeFrom(from._impl_.tissue_class_mapping_);
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (cached_has_bits & 0x0000003fu) {
+    if (cached_has_bits & 0x00000001u) {
+      _this->_internal_set_slide_id(from._internal_slide_id());
+    }
+    if (cached_has_bits & 0x00000002u) {
+      _this->_internal_set_slide_path(from._internal_slide_path());
+    }
+    if (cached_has_bits & 0x00000004u) {
+      _this->_internal_set_cell_model_name(from._internal_cell_model_name());
+    }
+    if (cached_has_bits & 0x00000008u) {
+      _this->_internal_set_tissue_model_name(from._internal_tissue_model_name());
+    }
+    if (cached_has_bits & 0x00000010u) {
+      _this->_impl_.mpp_ = from._impl_.mpp_;
+    }
+    if (cached_has_bits & 0x00000020u) {
+      _this->_impl_.max_level_ = from._impl_.max_level_;
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void SlideSegmentationData::CopyFrom(const SlideSegmentationData& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:DataProtoPolygon.SlideSegmentationData)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+PROTOBUF_NOINLINE bool SlideSegmentationData::IsInitializedImpl(
+    const MessageLite& msg) {
+  auto& this_ = static_cast<const SlideSegmentationData&>(msg);
+  if (_Internal::MissingRequiredFields(this_._impl_._has_bits_)) {
+    return false;
+  }
+  if (!::google::protobuf::internal::AllAreInitialized(this_._internal_tiles()))
+    return false;
+  return true;
+}
+
+void SlideSegmentationData::InternalSwap(SlideSegmentationData* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.tiles_.InternalSwap(&other->_impl_.tiles_);
+  _impl_.tissue_class_mapping_.InternalSwap(&other->_impl_.tissue_class_mapping_);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.slide_id_, &other->_impl_.slide_id_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.slide_path_, &other->_impl_.slide_path_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.cell_model_name_, &other->_impl_.cell_model_name_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.tissue_model_name_, &other->_impl_.tissue_model_name_, arena);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.max_level_)
+      + sizeof(SlideSegmentationData::_impl_.max_level_)
+      - PROTOBUF_FIELD_OFFSET(SlideSegmentationData, _impl_.mpp_)>(
+          reinterpret_cast<char*>(&_impl_.mpp_),
+          reinterpret_cast<char*>(&other->_impl_.mpp_));
+}
+
+::google::protobuf::Metadata SlideSegmentationData::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)
