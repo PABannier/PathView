@@ -22,6 +22,9 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
 # Resource directory for fonts and icons
 set(RESOURCES_DIR "${CMAKE_SOURCE_DIR}/resources")
 
+# Assets directory for application assets (icons, etc.)
+set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
+
 # Find threading library (cross-platform)
 find_package(Threads REQUIRED)
 
@@ -191,6 +194,7 @@ endif()
 # Add compile definitions for resource paths
 target_compile_definitions(pathview PRIVATE
     RESOURCES_DIR="${RESOURCES_DIR}"
+    ASSETS_DIR="${ASSETS_DIR}"
 )
 
 # MSVC-specific compile options and definitions
