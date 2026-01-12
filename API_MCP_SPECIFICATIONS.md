@@ -162,7 +162,7 @@ Register agent identity and retrieve session information. This should be the fir
 interface AgentHelloResponse {
   session_id: string;              // Unique session identifier
   agent_name: string;              // Echoed agent name
-  pathview_version: string;        // PathView version (e.g., "0.1.0")
+  pathview_version: string;        // PathView version (e.g., "0.2.0")
   mcp_server_url: string;          // MCP server URL
   http_server_url: string;         // HTTP server URL for snapshots
   stream_url: string;              // MJPEG stream base URL
@@ -189,7 +189,7 @@ interface AgentHelloResponse {
 {
   "session_id": "550e8400-e29b-41d4-a716-446655440000",
   "agent_name": "pathology-analyzer",
-  "pathview_version": "0.1.0",
+  "pathview_version": "0.2.0",
   "mcp_server_url": "http://127.0.0.1:9000",
   "http_server_url": "http://127.0.0.1:8080",
   "stream_url": "http://127.0.0.1:8080/stream",

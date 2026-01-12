@@ -1737,7 +1737,7 @@ pathview::ipc::json Application::HandleIPCCommand(const std::string& method, con
             json result = {
                 {"session_id", sessionId},
                 {"agent_name", agentName},
-                {"pathview_version", "0.1.0"},
+                {"pathview_version", "0.2.0"},
                 {"mcp_server_url", "http://127.0.0.1:9000"},
                 {"http_server_url", "http://127.0.0.1:8080"},
                 {"stream_url", "http://127.0.0.1:8080/stream"},

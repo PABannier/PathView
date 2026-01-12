@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
-    std::cout << "PathView MCP Server v0.1.0\n" << std::endl;
+    std::cout << "PathView MCP Server v0.2.0\n" << std::endl;
 
     // 1. Connect to GUI via IPC
     std::cout << "Connecting to PathView GUI at localhost:" << ipcPort << "..." << std::endl;

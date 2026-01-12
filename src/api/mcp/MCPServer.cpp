@@ -26,7 +26,7 @@ MCPServer::MCPServer(ipc::IPCClient* ipcClient,
     server_ = std::make_unique<::mcp::server>(config);
 
     // Set server info
-    server_->set_server_info("PathView MCP Server", "0.1.0");
+    server_->set_server_info("PathView MCP Server", "0.2.0");
 
     // Set capabilities
     ::mcp::json capabilities = {
