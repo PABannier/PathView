@@ -49,7 +49,11 @@
       "WebFetch(domain:openslide.org)",
       "Bash(docker:*)",
       "Bash(docker compose:*)",
-      "Bash(mc --version:*)"
+      "Bash(mc --version:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(ctest:*)"
     ],
     "deny": [],
     "ask": []

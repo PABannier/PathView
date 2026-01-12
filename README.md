@@ -2,7 +2,7 @@
 
 [![CICD](https://github.com/PABannier/PathView/actions/workflows/CICD.yml/badge.svg)](https://github.com/PABannier/PathView/actions/workflows/CICD.yml)
 
-A high-performance whole-slide image (WSI) viewer for digital pathology. PathView combines GPU-accelerated tiled rendering with polygon overlays for cell segmentation visualization and AI agent integration via the Model Context Protocol (MCP).
+A high-performance whole-slide image (WSI) viewer for digital pathology. PathView combines GPU-accelerated tiled rendering with polygon overlays for cell segmentation visualization, tissue classification heatmaps, and AI agent integration via the Model Context Protocol (MCP).
 
 ![PathView preview](./assets/pathview.gif)
 
@@ -16,7 +16,7 @@ A high-performance whole-slide image (WSI) viewer for digital pathology. PathVie
 - [Usage](#usage)
 - [Remote Slides](#remote-slides)
 - [AI Agent Integration](#ai-agent-integration)
-- [Supported Formats](#supported-formats)
+- [Data Formats](#data-formats)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -30,6 +30,7 @@ A high-performance whole-slide image (WSI) viewer for digital pathology. PathVie
 | **High-Performance Rendering** | Smooth pan/zoom with multiresolution pyramid tile loading and LRU caching |
 | **Remote Streaming** | Stream slides from S3-compatible storage via WSIStreamer tile server |
 | **Polygon Overlays** | Render cell segmentation data with class-based styling from Protocol Buffers |
+| **Tissue Heatmap Visualization** | GPU-accelerated tile-based tissue classification heatmap with spatial indexing for real-time visualization |
 | **AI Agent Control** | Full programmatic control via MCP with 27 tools for navigation, snapshots, and ROI analysis |
 | **Overview Minimap** | Click-to-jump navigation with real-time viewport indicator |
 | **Cross-Platform** | Native support for macOS and Linux |
@@ -130,6 +131,27 @@ File → Load Polygons...
 ```
 
 Polygons are rendered with class-based coloring and level-of-detail optimization.
+
+### Tissue Heatmap Visualization
+
+PathView automatically loads tissue classification heatmaps when available in the Protocol Buffer file. The tissue map provides a pixel-level tissue classification overlay rendered as a colored heatmap.
+
+**Features:**
+- **Multi-level tiling**: Supports pyramid-structured tissue maps matching the slide's resolution levels
+- **Class-based coloring**: Each tissue class is rendered with a distinct color
+- **Spatial indexing**: O(k) viewport queries using a 2D grid spatial index for efficient rendering
+- **Per-class visibility**: Toggle individual tissue classes on/off in the sidebar
+- **Opacity control**: Adjust overlay transparency from 0% to 100%
+- **GPU acceleration**: Tiles are cached as SDL textures for smooth rendering
+
+**Controls:**
+- View → Layers panel → Tissue Map section
+- Toggle visibility with the checkbox
+- Adjust opacity with the slider
+- Enable/disable individual tissue classes
+- Color indicators show each class's assigned color
+
+The window title dynamically updates to show the currently loaded slide filename (for local slides) or slide ID (for remote slides), making it easy to track which slide you're viewing.
 
 ---
 
@@ -273,7 +295,9 @@ For complete API reference including all parameters, response schemas, and error
 
 ---
 
-## Supported Formats
+## Data Formats
+
+### Whole-Slide Images
 
 PathView supports all formats recognized by [OpenSlide](https://openslide.org/) for local slides:
 
@@ -294,6 +318,41 @@ For streaming from an S3 bucket, PathView supports all formats recognized by [WS
 | Vendor | Extensions |
 |--------|------------|
 | Aperio | `.svs`, `.tif` |
+
+### Cell Segmentation and Tissue Maps
+
+PathView uses Protocol Buffer files (`.pb`, `.protobuf`) for storing both cell polygon overlays and tissue classification heatmaps. The format supports:
+
+**Cell Polygons:**
+- Per-cell segmentation with polygon coordinates
+- Cell type classification and confidence scores
+- Centroid coordinates for each cell
+
+**Tissue Heatmaps:**
+- Tile-based tissue segmentation at multiple resolution levels
+- Per-pixel tissue classification (uint8 class IDs)
+- Optional zlib compression for compact storage
+- Class ID to tissue type name mapping
+
+**Data Structure:**
+```protobuf
+message SlideSegmentationData {
+    required string slide_id;
+    required int32 max_level;
+    repeated TileSegmentationData tiles;
+    map<int32, string> tissue_class_mapping;
+}
+
+message TileSegmentationData {
+    required int32 level;
+    required float x, y;           // Tile position in slide coordinates
+    required int32 width, height;
+    repeated SegmentationPolygon masks;     // Cell polygons
+    required TissueSegmentationMap tissue_segmentation_map;  // Tissue heatmap
+}
+```
+
+Both overlays are loaded simultaneously from a single file, with the tissue map providing context for cell-level analysis.
 
 ---
 
