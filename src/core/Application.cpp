@@ -26,6 +26,7 @@
 #include "imgui_impl_sdlrenderer2.h"
 #include "IconsFontAwesome6.h"
 #include <SDL_timer.h>
+#include <SDL_image.h>
 #include <nfd.hpp>
 #include <iostream>
 #include <algorithm>
@@ -108,6 +109,17 @@ bool Application::Initialize() {
     if (!window_) {
         std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
         return false;
+    }
+
+    // Set window icon
+    std::string iconPath = std::string(ASSETS_DIR) + "/icon-pathview.iconset/icon_128x128.png";
+    SDL_Surface* iconSurface = IMG_Load(iconPath.c_str());
+    if (iconSurface) {
+        SDL_SetWindowIcon(window_, iconSurface);
+        SDL_FreeSurface(iconSurface);
+        std::cout << "Window icon loaded from: " << iconPath << std::endl;
+    } else {
+        std::cerr << "Warning: Failed to load window icon: " << IMG_GetError() << std::endl;
     }
 
     // Create renderer
