@@ -60,7 +60,6 @@ add_executable(unit_tests
     unit/navigation_lock_test.cpp
     unit/png_encoder_test.cpp
     unit/snapshot_manager_test.cpp
-    unit/action_card_test.cpp
 )
 
 target_include_directories(unit_tests PRIVATE
@@ -132,7 +131,6 @@ target_sources(unit_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/core/PolygonLoader.cpp
     ${CMAKE_SOURCE_DIR}/src/core/NavigationLock.cpp
     ${CMAKE_SOURCE_DIR}/src/core/PNGEncoder.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/ActionCard.cpp
     ${CMAKE_SOURCE_DIR}/src/api/http/SnapshotManager.cpp
     ${CMAKE_SOURCE_DIR}/src/loaders/ProtobufPolygonLoader.cpp
     ${CMAKE_SOURCE_DIR}/src/loaders/JSONPolygonLoader.cpp

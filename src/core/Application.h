@@ -51,7 +51,6 @@ namespace ipc {
 }
 
 #include "AnimationToken.h"
-#include "ActionCard.h"
 
 class Application {
 public:
@@ -88,13 +87,11 @@ private:
 
     // UI rendering methods
     void RenderMenuBar();
-    void RenderToolbar();
     void RenderSidebar();
     void RenderWelcomeOverlay();
     void RenderSlideInfoTab();
     void RenderPolygonTab();
     void RenderLayersTab();
-    void RenderActionCardsTab();
     void RenderNavigationLockIndicator();
     void ClearSlideState();
     void UpdateViewportRect();
@@ -148,15 +145,9 @@ private:
 
     // Sidebar configuration
     static constexpr float SIDEBAR_WIDTH = 350.0f;
-    bool sidebarVisible_;
 
     // Navigation lock state
     std::unique_ptr<NavigationLock> navLock_;
-
-    // Action cards state
-    std::vector<pathview::ActionCard> actionCards_;
-    std::mutex actionCardsMutex_;  // Thread-safe IPC access
-    static constexpr int MAX_ACTION_CARDS = 50;
 
     // Animation tracking for completion detection
     std::map<std::string, pathview::AnimationToken> activeAnimations_;
@@ -171,7 +162,6 @@ private:
     std::unique_ptr<pathview::ui::ServerConnectionDialog> serverConnectionDialog_;
     std::unique_ptr<pathview::ui::SlideBrowserDialog> slideBrowserDialog_;
 
-    // Toolbar configuration
-    static constexpr float TOOLBAR_HEIGHT = 40.0f;
+    // Status bar configuration
     static constexpr float STATUS_BAR_HEIGHT = 28.0f;
 };
