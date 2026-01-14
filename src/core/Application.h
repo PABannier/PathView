@@ -51,7 +51,6 @@ namespace ipc {
 }
 
 #include "AnimationToken.h"
-#include "ActionCard.h"
 
 class Application {
 public:
@@ -94,7 +93,6 @@ private:
     void RenderSlideInfoTab();
     void RenderPolygonTab();
     void RenderLayersTab();
-    void RenderActionCardsTab();
     void RenderNavigationLockIndicator();
     void ClearSlideState();
     void UpdateViewportRect();
@@ -152,11 +150,6 @@ private:
 
     // Navigation lock state
     std::unique_ptr<NavigationLock> navLock_;
-
-    // Action cards state
-    std::vector<pathview::ActionCard> actionCards_;
-    std::mutex actionCardsMutex_;  // Thread-safe IPC access
-    static constexpr int MAX_ACTION_CARDS = 50;
 
     // Animation tracking for completion detection
     std::map<std::string, pathview::AnimationToken> activeAnimations_;
