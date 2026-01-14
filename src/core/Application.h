@@ -87,7 +87,6 @@ private:
 
     // UI rendering methods
     void RenderMenuBar();
-    void RenderToolbar();
     void RenderSidebar();
     void RenderWelcomeOverlay();
     void RenderSlideInfoTab();
@@ -146,7 +145,6 @@ private:
 
     // Sidebar configuration
     static constexpr float SIDEBAR_WIDTH = 350.0f;
-    bool sidebarVisible_;
 
     // Navigation lock state
     std::unique_ptr<NavigationLock> navLock_;
@@ -164,7 +162,6 @@ private:
     std::unique_ptr<pathview::ui::ServerConnectionDialog> serverConnectionDialog_;
     std::unique_ptr<pathview::ui::SlideBrowserDialog> slideBrowserDialog_;
 
-    // Toolbar configuration
-    static constexpr float TOOLBAR_HEIGHT = 40.0f;
+    // Status bar configuration
     static constexpr float STATUS_BAR_HEIGHT = 28.0f;
 };

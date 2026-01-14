@@ -60,7 +60,6 @@ add_executable(unit_tests
     unit/navigation_lock_test.cpp
     unit/png_encoder_test.cpp
     unit/snapshot_manager_test.cpp
-    unit/action_card_test.cpp
 )
 
 target_include_directories(unit_tests PRIVATE

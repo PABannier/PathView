@@ -49,7 +49,6 @@ The minimal set of tools for AI Cursor workflows (Step 7 MVP):
 | **Camera Movement** | `move_camera`, `await_move` | Smooth animated navigation |
 | **Screenshot Capture** | `capture_snapshot`, `/snapshot/{id}`, `/stream?fps=N` | Visual feedback |
 | **ROI Analysis** | `create_annotation`, `compute_roi_metrics` | Draw regions, count cells |
-| **Progress Tracking** | `create_action_card`, `update_action_card`, `append_action_card_log` | Display agent status |
 | **Slide Management** | `load_slide`, `get_slide_info` | Load WSI files |
 | **Polygon Overlays** | `load_polygons` | Load cell segmentation data |
 
@@ -134,29 +133,7 @@ lock = await client.call_tool("nav_lock", {
 # }
 ```
 
-### Step 4: Create Action Card (Progress Tracking)
-
-Display your analysis progress in the PathView UI:
-
-```python
-card = await client.call_tool("create_action_card", {
-    "title": "Analyzing tumor region",
-    "summary": "Scanning high-density cell area for classification",
-    "reasoning": "Step 1: Navigate to ROI. Step 2: Capture snapshots. Step 3: Compute metrics.",
-    "owner_uuid": owner_uuid
-})
-
-card_id = card["id"]
-# Returns: {"id": "card-uuid", "status": "pending", "created_at": "..."}
-
-# Update status to in_progress
-await client.call_tool("update_action_card", {
-    "id": card_id,
-    "status": "in_progress"
-})
-```
-
-### Step 5: Start Snapshot Streaming (Optional)
+### Step 4: Start Snapshot Streaming (Optional)
 
 Subscribe to live viewport updates in a background task:
 
@@ -179,7 +156,7 @@ stream_task = asyncio.create_task(
 )
 ```
 
-### Step 6: Navigate Camera with Completion Tracking
+### Step 5: Navigate Camera with Completion Tracking
 
 Move the camera smoothly and wait for animation to complete:
 
@@ -205,15 +182,9 @@ for _ in range(max_polls):
             print("Animation was interrupted")
         break
 
-# Log progress
-await client.call_tool("append_action_card_log", {
-    "id": card_id,
-    "message": f"Camera positioned at ({status['position']['x']}, {status['position']['y']})",
-    "level": "info"
-})
 ```
 
-### Step 7: Capture Snapshot
+### Step 6: Capture Snapshot
 
 Take a screenshot of the current viewport:
 
@@ -236,7 +207,7 @@ async with httpx.AsyncClient() as http_client:
         f.write(png_data)
 ```
 
-### Step 8: Draw ROI and Get Cell Metrics
+### Step 7: Draw ROI and Get Cell Metrics
 
 Create an annotation polygon and automatically count cells:
 
@@ -275,14 +246,6 @@ annotation = await client.call_tool("create_annotation", {
 #     "warning": "No polygons loaded. Cell counts unavailable. Use load_polygons to enable cell counting."
 # }
 
-cell_counts = annotation["cell_counts"]
-total_cells = cell_counts.get("total", 0)
-
-await client.call_tool("append_action_card_log", {
-    "id": card_id,
-    "message": f"ROI analysis complete: {total_cells} cells detected",
-    "level": "success"
-})
 ```
 
 ### Step 9: Quick Probe (No Annotation Persistence)

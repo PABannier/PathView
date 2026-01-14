@@ -45,7 +45,6 @@ Application::Application()
     , windowWidth_(1280)
     , windowHeight_(720)
     , dpiScale_(1.0f)
-    , sidebarVisible_(true)
     , navLock_(std::make_unique<NavigationLock>())
     , screenshotBuffer_(std::make_unique<pathview::ScreenshotBuffer>())
 {
@@ -359,9 +358,6 @@ void Application::ProcessEvents() {
                     case SDLK_p:
                         OpenPolygonFileDialog();
                         break;
-                    case SDLK_b:
-                        sidebarVisible_ = !sidebarVisible_;
-                        break;
                     case SDLK_q:
                         running_ = false;
                         break;
@@ -522,7 +518,7 @@ void Application::Render() {
 
     // Render minimap overlay (local or remote slides)
     if ((slideLoader_ || remoteSlideSource_) && viewport_ && minimap_) {
-        minimap_->Render(*viewport_, sidebarVisible_, sidebarVisible_ ? SIDEBAR_WIDTH : 0.0f);
+        minimap_->Render(*viewport_, true, SIDEBAR_WIDTH);
     }
 
     // Render ImGui
@@ -536,7 +532,6 @@ void Application::Render() {
 void Application::RenderUI() {
     UpdateViewportRect();
     RenderMenuBar();
-    RenderToolbar();
     RenderSidebar();
     RenderWelcomeOverlay();
 
@@ -561,8 +556,8 @@ void Application::UpdateViewportRect() {
 
     float menuBarHeight = ImGui::GetFrameHeight();
     int offsetX = 0;
-    int offsetY = static_cast<int>(menuBarHeight + TOOLBAR_HEIGHT);
-    int width = windowWidth_ - (sidebarVisible_ ? static_cast<int>(SIDEBAR_WIDTH) : 0);
+    int offsetY = static_cast<int>(menuBarHeight);
+    int width = windowWidth_ - static_cast<int>(SIDEBAR_WIDTH);
     int height = windowHeight_ - offsetY;
 
     if (width < 1) {
@@ -874,97 +869,12 @@ void Application::RenderMenuBar() {
     }
 }
 
-void Application::RenderToolbar() {
-    float menuBarHeight = ImGui::GetFrameHeight();
-
-    // Position toolbar below menu bar
-    ImGui::SetNextWindowPos(ImVec2(0, menuBarHeight), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(static_cast<float>(windowWidth_), TOOLBAR_HEIGHT), ImGuiCond_Always);
-
-    ImGuiWindowFlags flags =
-        ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoScrollbar;
-
-    if (ImGui::Begin("##Toolbar", nullptr, flags)) {
-        const float buttonHeight = TOOLBAR_HEIGHT - 10.0f;
-        const ImVec2 buttonSize(150.0f, buttonHeight);
-
-        const char* sidebarLabel = sidebarVisible_ ? ICON_FA_EYE_SLASH "  Hide Sidebar"
-                                                   : ICON_FA_EYE "  Show Sidebar";
-        if (ImGui::Button(sidebarLabel, buttonSize)) {
-            sidebarVisible_ = !sidebarVisible_;
-        }
-        ImGui::SameLine();
-
-        if (viewport_) {
-            if (ImGui::Button(ICON_FA_CROSSHAIRS "  Reset View", buttonSize)) {
-                viewport_->ResetView();
-            }
-        } else {
-            ImGui::BeginDisabled();
-            ImGui::Button(ICON_FA_CROSSHAIRS "  Reset View", buttonSize);
-            ImGui::EndDisabled();
-        }
-        ImGui::SameLine();
-
-        // Polygon tool button (toggle style)
-        bool wasActive = annotationManager_ && annotationManager_->IsToolActive();
-
-        if (wasActive) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
-        }
-
-        if (ImGui::Button(ICON_FA_DRAW_POLYGON "  Polygon Tool", buttonSize)) {
-            if (annotationManager_) {
-                annotationManager_->SetToolActive(!wasActive);
-            }
-        }
-
-        if (wasActive) {
-            ImGui::PopStyleColor();
-        }
-
-        if (annotationManager_ && annotationManager_->IsToolActive()) {
-            ImGui::SameLine();
-            ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
-                              "Click to add vertices | Enter/Double-click/Click first point to close | Esc to cancel");
-        }
-
-        // Remote connection status indicator (right-aligned)
-        if (remoteClient_ && remoteClient_->IsConnected()) {
-            // Calculate position for right-aligned indicator
-            const char* statusText = ICON_FA_SERVER " Connected";
-            float textWidth = ImGui::CalcTextSize(statusText).x;
-            float padding = 10.0f;
-
-            ImGui::SameLine(static_cast<float>(windowWidth_) - textWidth - padding -
-                           (sidebarVisible_ ? SIDEBAR_WIDTH : 0.0f));
-
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.8f, 0.4f, 1.0f));
-            ImGui::Text("%s", statusText);
-            ImGui::PopStyleColor();
-
-            // Tooltip with server URL on hover
-            if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Connected to: %s", remoteClient_->GetServerUrl().c_str());
-            }
-        }
-    }
-    ImGui::End();
-}
 
 void Application::RenderSidebar() {
-    if (!sidebarVisible_) {
-        return;  // Sidebar is hidden
-    }
-
     // Calculate sidebar position and size
     float menuBarHeight = ImGui::GetFrameHeight();
-    ImVec2 sidebarPos(windowWidth_ - SIDEBAR_WIDTH, menuBarHeight + TOOLBAR_HEIGHT);
-    ImVec2 sidebarSize(SIDEBAR_WIDTH, windowHeight_ - menuBarHeight - TOOLBAR_HEIGHT);
+    ImVec2 sidebarPos(windowWidth_ - SIDEBAR_WIDTH, menuBarHeight);
+    ImVec2 sidebarSize(SIDEBAR_WIDTH, windowHeight_ - menuBarHeight);
 
     // Position and size the sidebar
     ImGui::SetNextWindowPos(sidebarPos, ImGuiCond_Always);

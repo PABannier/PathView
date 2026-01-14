@@ -243,7 +243,6 @@ The MCP server exposes 27 tools across 7 categories:
 | **Snapshots** | `capture_snapshot` | Capture viewport as PNG |
 | **Polygons** | `load_polygons`, `query_polygons`, `set_polygon_visibility` | Cell segmentation overlay |
 | **Annotations** | `create_annotation`, `list_annotations`, `get_annotation`, `delete_annotation`, `compute_roi_metrics` | ROI creation and cell counting |
-| **Action Cards** | `create_action_card`, `update_action_card`, `append_action_card_log`, `list_action_cards`, `delete_action_card` | Progress tracking UI |
 
 ### Example Workflow
 

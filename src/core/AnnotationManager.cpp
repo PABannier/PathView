@@ -3,9 +3,11 @@
 #include "PolygonTriangulator.h"
 #include "Minimap.h"
 #include "imgui.h"
+#include "IconsFontAwesome6.h"
 #include <iostream>
 #include <cstring>
 #include <cmath>
+#include <cfloat>
 
 
 void AnnotationPolygon::ComputeBoundingBox() {
@@ -493,19 +495,39 @@ void AnnotationManager::RenderDrawingPreview(const Viewport& viewport) {
 }
 
 void AnnotationManager::RenderUI(PolygonOverlay* polygonOverlay) {
-    ImGui::Text("Annotations: %d", GetAnnotationCount());
+    // Polygon Tool button with toggle styling
+    bool wasActive = toolActive_;
 
+    if (wasActive) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
+    }
+
+    if (ImGui::Button(ICON_FA_DRAW_POLYGON "  Polygon Tool", ImVec2(-FLT_MIN, 0.0f))) {
+        SetToolActive(!wasActive);
+    }
+
+    if (wasActive) {
+        ImGui::PopStyleColor();
+    }
+
+    // Show instructions when tool is active
     if (toolActive_) {
-        ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f),
-                          "Drawing mode active");
+        ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
+                          "Click to add vertices");
+        ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
+                          "Enter/Double-click to close");
+        ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
+                          "Esc to cancel");
     }
 
     ImGui::Separator();
 
+    ImGui::Text("Annotations: %d", GetAnnotationCount());
+
     if (annotations_.empty()) {
         ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
                           "No annotations yet");
-        ImGui::Text("Use the Polygon Tool to draw annotations");
+        ImGui::TextWrapped("Use the Polygon Tool above to draw annotations on the slide.");
         return;
     }
 
