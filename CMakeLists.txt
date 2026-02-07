@@ -49,6 +49,14 @@ if(NOT TARGET protobuf::libprotobuf AND NOT TARGET Protobuf::Protobuf)
     find_package(Protobuf REQUIRED)
 endif()
 
+# Find zstd (for new protobuf format decompression)
+find_package(zstd CONFIG REQUIRED)
+if(TARGET zstd::libzstd_static)
+    set(PATHVIEW_ZSTD_TARGET zstd::libzstd_static)
+elseif(TARGET zstd::libzstd_shared)
+    set(PATHVIEW_ZSTD_TARGET zstd::libzstd_shared)
+endif()
+
 # Find OpenSlide (prefer config, fallback to module)
 find_package(OpenSlide CONFIG QUIET)
 if(NOT TARGET OpenSlide::OpenSlide)
@@ -160,6 +168,7 @@ set(APP_SOURCES
     src/ui/ServerConnectionDialog.cpp
     src/ui/SlideBrowserDialog.cpp
     protobuf/cell_polygons.pb.cc
+    protobuf/new_cell_masks.pb.cc
 )
 
 # Create executable
@@ -219,6 +228,7 @@ target_link_libraries(pathview PRIVATE
     ${PATHVIEW_OPENSLIDE_TARGET}
     ${PATHVIEW_NFD_TARGET}
     ${PATHVIEW_PROTOBUF_TARGET}
+    ${PATHVIEW_ZSTD_TARGET}
     absl::log
     absl::log_internal_check_op
     absl::log_internal_message

@@ -3,6 +3,8 @@
 #include "PolygonLoader.h"
 #include "PolygonOverlay.h"
 #include "TissueMapOverlay.h"
+#include "cell_polygons.pb.h"
+#include "new_cell_masks.pb.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -23,7 +25,8 @@ struct TissueMapData {
  * Protocol Buffer Polygon File Loader
  *
  * Loads polygon data from protobuf-serialized SlideSegmentationData files.
- * The file format uses the histowmics.SlideSegmentationData message type.
+ * Supports both the old format (DataProtoPolygon, proto2) and the new format
+ * (histotyper_v2, proto3). Format detection is automatic with fallback.
  *
  * Cell types (strings) are automatically mapped to integer class IDs.
  */
@@ -56,4 +59,19 @@ public:
                         std::map<int, SDL_Color>& outClassColors,
                         std::map<int, std::string>& outClassNames,
                         TissueMapData& outTissueData);
+
+private:
+    /** Load old format (DataProtoPolygon) from pre-parsed data */
+    bool LoadOldFormatWithTissue(const DataProtoPolygon::SlideSegmentationData& slideData,
+                                 std::vector<Polygon>& outPolygons,
+                                 std::map<int, SDL_Color>& outClassColors,
+                                 std::map<int, std::string>& outClassNames,
+                                 TissueMapData& outTissueData);
+
+    /** Load new format (histotyper_v2) from pre-parsed data */
+    bool LoadNewFormatWithTissue(const histotyper_v2::SlideSegmentationData& slideData,
+                                 std::vector<Polygon>& outPolygons,
+                                 std::map<int, SDL_Color>& outClassColors,
+                                 std::map<int, std::string>& outClassNames,
+                                 TissueMapData& outTissueData);
 };

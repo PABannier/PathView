@@ -31,6 +31,13 @@ endif()
 find_package(PNG REQUIRED)
 find_package(simdjson CONFIG REQUIRED)
 
+find_package(zstd CONFIG REQUIRED)
+if(TARGET zstd::libzstd_static)
+    set(PATHVIEW_ZSTD_TARGET zstd::libzstd_static)
+elseif(TARGET zstd::libzstd_shared)
+    set(PATHVIEW_ZSTD_TARGET zstd::libzstd_shared)
+endif()
+
 if(TARGET OpenSlide::OpenSlide)
     set(PATHVIEW_OPENSLIDE_TARGET OpenSlide::OpenSlide)
 else()
@@ -112,6 +119,7 @@ target_link_libraries(unit_tests PRIVATE
     GTest::gtest
     ${PATHVIEW_OPENSLIDE_TARGET}
     ${PATHVIEW_PROTOBUF_TARGET}
+    ${PATHVIEW_ZSTD_TARGET}
     PNG::PNG
     simdjson::simdjson
 )
@@ -135,6 +143,7 @@ target_sources(unit_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/loaders/ProtobufPolygonLoader.cpp
     ${CMAKE_SOURCE_DIR}/src/loaders/JSONPolygonLoader.cpp
     ${CMAKE_SOURCE_DIR}/protobuf/cell_polygons.pb.cc
+    ${CMAKE_SOURCE_DIR}/protobuf/new_cell_masks.pb.cc
 )
 
 # For SDL-dependent files, we need to link SDL2
