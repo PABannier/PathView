@@ -29,8 +29,8 @@ jobs:
             name: macOS 14 (arm64)
             triplet: arm64-osx
             generator: Ninja
-          - os: macos-13
-            name: macOS 13 (x86_64)
+          - os: macos-15-large
+            name: macOS 15 (x86_64)
             triplet: x64-osx
             generator: Ninja
 
