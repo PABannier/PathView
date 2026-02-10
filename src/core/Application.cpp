@@ -34,6 +34,46 @@
 #include <cfloat>
 #include <thread>
 #include <filesystem>
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
+namespace {
+
+std::string GetResourcesPath() {
+#ifdef __APPLE__
+    // Check if running from a .app bundle: executable is at .app/Contents/MacOS/pathview
+    // and resources are at .app/Contents/Resources/
+    char execPath[PATH_MAX];
+    uint32_t size = sizeof(execPath);
+    if (_NSGetExecutablePath(execPath, &size) == 0) {
+        std::filesystem::path exe = std::filesystem::canonical(execPath);
+        std::filesystem::path resourcesDir = exe.parent_path().parent_path() / "Resources";
+        if (std::filesystem::exists(resourcesDir / "fonts")) {
+            return resourcesDir.string();
+        }
+    }
+#endif
+    return RESOURCES_DIR;
+}
+
+std::string GetAssetsPath() {
+#ifdef __APPLE__
+    char execPath[PATH_MAX];
+    uint32_t size = sizeof(execPath);
+    if (_NSGetExecutablePath(execPath, &size) == 0) {
+        std::filesystem::path exe = std::filesystem::canonical(execPath);
+        std::filesystem::path resourcesDir = exe.parent_path().parent_path() / "Resources";
+        if (std::filesystem::exists(resourcesDir / "fonts")) {
+            // In bundle mode, assets are also in Resources/
+            return resourcesDir.string();
+        }
+    }
+#endif
+    return ASSETS_DIR;
+}
+
+} // anonymous namespace
 
 Application::Application()
     : window_(nullptr)
@@ -111,7 +151,7 @@ bool Application::Initialize() {
     }
 
     // Set window icon
-    std::string iconPath = std::string(ASSETS_DIR) + "/icon-pathview.iconset/icon_128x128.png";
+    std::string iconPath = GetAssetsPath() + "/icon-pathview.iconset/icon_128x128.png";
     SDL_Surface* iconSurface = IMG_Load(iconPath.c_str());
     if (iconSurface) {
         SDL_SetWindowIcon(window_, iconSurface);
@@ -147,7 +187,7 @@ bool Application::Initialize() {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    std::string fontPath = std::string(RESOURCES_DIR) + "/fonts/";
+    std::string fontPath = GetResourcesPath() + "/fonts/";
     ImFontConfig config;
     config.OversampleH = 2;
     config.OversampleV = 2;

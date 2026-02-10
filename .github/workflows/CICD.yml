@@ -29,6 +29,10 @@ jobs:
             name: macOS 14 (arm64)
             triplet: arm64-osx
             generator: Ninja
+          - os: macos-13
+            name: macOS 13 (x86_64)
+            triplet: x64-osx
+            generator: Ninja
 
     env:
       VCPKG_FEATURE_FLAGS: manifests,binarycaching
@@ -73,7 +77,8 @@ jobs:
             cmake \
             ninja \
             openslide \
-            pkg-config
+            pkg-config \
+            dylibbundler
 
       - name: Setup vcpkg (Linux/macOS)
         run: |
@@ -98,11 +103,21 @@ jobs:
         run: ctest --test-dir build --output-on-failure --timeout 120 -C Release -L unit
 
       - name: Read version
-        if: github.event_name == 'release'
         id: version
         run: echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
 
-      - name: Package artifacts
+      - name: Package DMG (macOS)
+        if: runner.os == 'macOS'
+        run: ./scripts/package_macos.sh build
+
+      - name: Upload DMG artifact
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: PathView-${{ matrix.triplet }}-dmg
+          path: "*.dmg"
+
+      - name: Package tarball
         if: github.event_name == 'release'
         run: |
           mkdir -p dist
@@ -114,4 +129,6 @@ jobs:
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: pathview-${{ steps.version.outputs.version }}-${{ matrix.triplet }}.tar.gz
+          files: |
+            pathview-${{ steps.version.outputs.version }}-${{ matrix.triplet }}.tar.gz
+            PathView-${{ steps.version.outputs.version }}-*.dmg
