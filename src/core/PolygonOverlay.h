@@ -96,6 +96,7 @@ public:
     const std::vector<int>& GetClassIds() const { return classIds_; }
     std::string GetClassName(int classId) const;
     int GetPolygonCount() const { return static_cast<int>(polygons_.size()); }
+    int GetClassCount(int classId) const;
     const std::vector<Polygon>& GetPolygons() const { return polygons_; }
 
     // Get slide dimensions (for spatial index)
@@ -109,6 +110,7 @@ private:
     std::map<int, std::string> classNames_;  // Map of class ID to class name
     std::map<int, bool> classVisibility_;    // Per-class visibility
     std::vector<int> classIds_;  // Ordered list of class IDs
+    std::map<int, int> classCounts_;  // Per-class polygon counts
     bool visible_;
     float opacity_;
     double slideWidth_;
