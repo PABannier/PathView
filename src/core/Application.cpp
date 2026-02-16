@@ -1129,22 +1129,11 @@ void Application::RenderLayersTab() {
         // Header with master visibility toggle
         ImGui::PushID("TissueSection");
 
-        // Use a styled header
-        ImVec4 headerColor = tissueVisible
-            ? ImVec4(0.2f, 0.4f, 0.6f, 1.0f)
-            : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
-        ImGui::PushStyleColor(ImGuiCol_Header, headerColor);
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(headerColor.x + 0.1f, headerColor.y + 0.1f, headerColor.z + 0.1f, 1.0f));
-
-        bool tissueOpen = ImGui::CollapsingHeader("Tissue Map", ImGuiTreeNodeFlags_DefaultOpen);
-
-        ImGui::PopStyleColor(2);
-
-        // Master visibility checkbox on same line
-        ImGui::SameLine(ImGui::GetWindowWidth() - 40);
         if (ImGui::Checkbox("##TissueVisible", &tissueVisible)) {
             tissueMapOverlay_->SetVisible(tissueVisible);
         }
+        ImGui::SameLine();
+        bool tissueOpen = ImGui::TreeNodeEx("Tissue Map", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen);
 
         if (tissueOpen) {
             ImGui::Indent(10.0f);
@@ -1204,21 +1193,11 @@ void Application::RenderLayersTab() {
         // Header with master visibility toggle
         ImGui::PushID("PolygonSection");
 
-        ImVec4 headerColor = polygonsVisible
-            ? ImVec4(0.4f, 0.5f, 0.3f, 1.0f)
-            : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
-        ImGui::PushStyleColor(ImGuiCol_Header, headerColor);
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(headerColor.x + 0.1f, headerColor.y + 0.1f, headerColor.z + 0.1f, 1.0f));
-
-        bool polygonsOpen = ImGui::CollapsingHeader("Cell Polygons", ImGuiTreeNodeFlags_DefaultOpen);
-
-        ImGui::PopStyleColor(2);
-
-        // Master visibility checkbox on same line
-        ImGui::SameLine(ImGui::GetWindowWidth() - 40);
         if (ImGui::Checkbox("##PolygonsVisible", &polygonsVisible)) {
             polygonOverlay_->SetVisible(polygonsVisible);
         }
+        ImGui::SameLine();
+        bool polygonsOpen = ImGui::TreeNodeEx("Cell Polygons", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen);
 
         if (polygonsOpen) {
             ImGui::Indent(10.0f);
@@ -1248,7 +1227,8 @@ void Application::RenderLayersTab() {
                 // Color picker
                 SDL_Color color = polygonOverlay_->GetClassColor(classId);
                 ImVec4 imColor(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, 1.0f);
-                std::string className = polygonOverlay_->GetClassName(classId);
+                std::string className = polygonOverlay_->GetClassName(classId)
+                    + " (" + std::to_string(polygonOverlay_->GetClassCount(classId)) + ")";
                 if (ImGui::ColorEdit3(className.c_str(), (float*)&imColor,
                                       ImGuiColorEditFlags_NoInputs)) {
                     polygonOverlay_->SetClassColor(classId, {

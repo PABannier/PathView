@@ -62,6 +62,12 @@ bool PolygonOverlay::LoadPolygons(const std::string& filepath) {
         classIds_.push_back(pair.first);
     }
 
+    // Compute per-class counts
+    classCounts_.clear();
+    for (const auto& polygon : polygons_) {
+        classCounts_[polygon.classId]++;
+    }
+
     // Build spatial index if we have slide dimensions
     BuildSpatialIndex();
 
@@ -96,6 +102,12 @@ void PolygonOverlay::SetPolygonData(std::vector<Polygon>&& polygons,
     classIds_.clear();
     for (const auto& pair : classColors_) {
         classIds_.push_back(pair.first);
+    }
+
+    // Compute per-class counts
+    classCounts_.clear();
+    for (const auto& polygon : polygons_) {
+        classCounts_[polygon.classId]++;
     }
 
     // Build spatial index if we have slide dimensions
@@ -195,6 +207,7 @@ void PolygonOverlay::Clear() {
     classNames_.clear();
     classVisibility_.clear();
     classIds_.clear();
+    classCounts_.clear();
     spatialIndex_.reset();
     visible_ = false;
 }
@@ -382,6 +395,14 @@ std::string PolygonOverlay::GetClassName(int classId) const {
 
     // Fallback to generic name if not found
     return "Class " + std::to_string(classId);
+}
+
+int PolygonOverlay::GetClassCount(int classId) const {
+    auto it = classCounts_.find(classId);
+    if (it != classCounts_.end()) {
+        return it->second;
+    }
+    return 0;
 }
 
 void PolygonOverlay::SetClassVisible(int classId, bool visible) {
